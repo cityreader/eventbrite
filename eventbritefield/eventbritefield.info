@@ -1,0 +1,14 @@
+name = Eventbrite field
+description = Defines an Eventbrite field type.
+dependencies[] = text
+dependencies[] = eventbrite
+
+core = 7.x
+files[] = eventbritefield.install
+files[] = eventbritefield.module
+
+files[] = views/eventbritefield.views.inc
+
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "eventbrite"

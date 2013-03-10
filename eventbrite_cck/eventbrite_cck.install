@@ -1,0 +1,78 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the eventbrite_cck module.
+ *
+ */
+
+// Notify CCK when this module is enabled, disabled, installed, and uninstalled
+// so CCK can do any necessary preparation or cleanup.
+/**
+ * @file
+ * Implements hook_install().
+ */
+function eventbrite_cck_install() {
+  content_notify('install', 'eventbrite_cck');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eventbrite_cck_uninstall() {
+  content_notify('uninstall', 'eventbrite_cck');
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function eventbrite_cck_enable() {
+  content_notify('enable', 'eventbrite_cck');
+}
+
+/**
+ * Implements hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function eventbrite_cck_disable() {
+  content_notify('disable', 'eventbrite_cck');
+}
+
+
+/**
+ * hook_update()
+ *
+ * Switched event id column to bigint
+ */
+function eventbrite_cck_update_6000() {
+  $ret = array();
+
+  // Build a list of fields that need updating.
+  $update_fields = array();
+  foreach (content_types_install() as $type_name => $fields) {
+    foreach ($fields as $field) {
+      if ($field['type'] == 'eventbrite_cck') {
+        // We only process a given field once.
+        $update_fields[$field['field_name']] = $field;
+      }
+    }
+  }
+
+  // Update each field's storage to match the current definition.
+  foreach ($update_fields as $field) {
+    $db_info = content_database_info($field);
+    foreach ($db_info['columns'] as $column) {
+      db_change_field($db_info['table'], $column['column'], $column['column'], $column);
+    }
+  }
+
+  // Let CCK re-associate eventbrite_cck fields with Eventbrite CCK module and activate the fields.
+  content_associate_fields('eventbrite_cck');
+
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
+}
