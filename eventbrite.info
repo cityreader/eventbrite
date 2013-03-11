@@ -3,8 +3,8 @@ description = Implements the Eventbrite API for other Drupal modules in the Even
 core = 7.x
 package = Eventbrite
 
-dependencies[] = date_api
 dependencies[] = libraries
+dependencies[] = date_api
 
 files[] = eventbrite.admin.inc
 files[] = eventbrite.api.inc
@@ -14,3 +14,5 @@ files[] = eventbrite.organizer.inc
 files[] = eventbrite.payment.inc
 files[] = eventbrite.venue.inc
 files[] = eventbrite.css
+
+configure = admin/config/services/eventbrite

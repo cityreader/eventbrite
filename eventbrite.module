@@ -17,7 +17,10 @@ function eventbrite_libraries_info() {
     'files' => array(
       'php' => array('Eventbrite.php'),
     ),
+    'version' => '1.0',
   );
+
+  return $libraries;
 }
 
 /**
@@ -41,18 +44,15 @@ function eventbrite_menu() {
     'description' => 'Configure Eventbrite settings & objects',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('eventbrite_admin_settings'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer eventbrite settings'),
     'file' => 'eventbrite.admin.inc',
   );
 
   $items['admin/config/services/eventbrite/api'] = array(
     'title' => 'API Settings',
     'description' => 'Configure Eventbrite API settings',
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -1,
-    'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
-    'title' => 'API Settings',
   );
 
   $items['admin/config/services/eventbrite/organizers'] = array(
@@ -67,95 +67,95 @@ function eventbrite_menu() {
     'weight' => 2,
   );
 
-  $items['admin/config/services/eventbrite/organizers/list'] = array(
-    'title' => 'List Organizers',
-    'description' => 'List Eventbrite organizers',
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
+  // $items['admin/config/services/eventbrite/organizers/list'] = array(
+  //   'title' => 'List Organizers',
+  //   'description' => 'List Eventbrite organizers',
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer eventbrite settings'),
+  //   'type' => MENU_DEFAULT_LOCAL_TASK,
+  //   'weight' => 0,
+  // );
 
-  $items['admin/config/services/eventbrite/organizers/add'] = array(
-    'title' => 'Add an Organizer',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_organizer'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'file' => 'eventbrite.organizer.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
-  );
+  // $items['admin/config/services/eventbrite/organizers/add'] = array(
+  //   'title' => 'Add an Organizer',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_organizer'),
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer eventbrite settings'),
+  //   'file' => 'eventbrite.organizer.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 2,
+  // );
 
-  $items['admin/config/services/eventbrite/organizers/%'] = array(
-    'title' => 'Edit this Organizer',
-    'description' => 'Edit an Eventbrite organizer',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_organizer', 4),
-    'access callback' => 'is_numeric',
-    'access arguments' => array(4),
-    'file' => 'eventbrite.organizer.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 3,
-  );
+  // $items['admin/config/services/eventbrite/organizers/%'] = array(
+  //   'title' => 'Edit this Organizer',
+  //   'description' => 'Edit an Eventbrite organizer',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_organizer', 4),
+  //   'access callback' => 'is_numeric',
+  //   'access arguments' => array(4),
+  //   'file' => 'eventbrite.organizer.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 3,
+  // );
 
-  // VENUES
+  // // VENUES
 
-  $items['admin/config/services/eventbrite/venues'] = array(
-    'title' => 'Venues',
-    'description' => 'List Eventbrite venues',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_venue_list_form'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'file' => 'eventbrite.venue.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
-  );
+  // $items['admin/config/services/eventbrite/venues'] = array(
+  //   'title' => 'Venues',
+  //   'description' => 'List Eventbrite venues',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_venue_list_form'),
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer eventbrite settings'),
+  //   'file' => 'eventbrite.venue.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 2,
+  // );
 
-  $items['admin/config/services/eventbrite/venues/list'] = array(
-    'title' => 'List Venues',
-    'description' => 'List Eventbrite venues',
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 0,
-  );
+  // $items['admin/config/services/eventbrite/venues/list'] = array(
+  //   'title' => 'List Venues',
+  //   'description' => 'List Eventbrite venues',
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer eventbrite settings'),
+  //   'type' => MENU_DEFAULT_LOCAL_TASK,
+  //   'weight' => 0,
+  // );
 
-  $items['admin/config/services/eventbrite/venues/add'] = array(
-    'title' => 'Add a Venue',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_venue'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'file' => 'eventbrite.venue.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
-  );
+  // $items['admin/config/services/eventbrite/venues/add'] = array(
+  //   'title' => 'Add a Venue',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_venue'),
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer eventbrite settings'),
+  //   'file' => 'eventbrite.venue.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 2,
+  // );
 
-  $items['admin/config/services/eventbrite/venues/%'] = array(
-    'title' => 'Edit this Venue',
-    'description' => 'Edit an Eventbrite venue',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_venue', 4),
-    'access callback' => 'is_numeric',
-    'access arguments' => array(4),
-    'file' => 'eventbrite.venue.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 3,
-  );
+  // $items['admin/config/services/eventbrite/venues/%'] = array(
+  //   'title' => 'Edit this Venue',
+  //   'description' => 'Edit an Eventbrite venue',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_venue', 4),
+  //   'access callback' => 'is_numeric',
+  //   'access arguments' => array(4),
+  //   'file' => 'eventbrite.venue.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 3,
+  // );
 
-  $items['admin/config/services/eventbrite/payment-settings'] = array(
-    'title' => 'Payment Settings',
-    'description' => 'Configure default payment settings',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_payment_default_settings'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
-    'file' => 'eventbrite.payment.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 5,
-  );
+  // $items['admin/config/services/eventbrite/payment-settings'] = array(
+  //   'title' => 'Payment Settings',
+  //   'description' => 'Configure default payment settings',
+  //   'page callback' => 'drupal_get_form',
+  //   'page arguments' => array('eventbrite_payment_default_settings'),
+  //   'access callback' => 'user_access',
+  //   'access arguments' => array('administer site configuration'),
+  //   'file' => 'eventbrite.payment.inc',
+  //   'type' => MENU_LOCAL_TASK,
+  //   'weight' => 5,
+  // );
 
   return $items;
 }
@@ -199,16 +199,16 @@ function eventbrite_theme() {
 /**
  * Get $eb_client instance
  */
-function eventbrite_get_instance() {
+function eventbrite_get_instance($app_key = '', $user_key = '') {
   static $eb_client;
 
   if (empty($eb_client) && eventbrite_is_valid_auth()) {
-    
+        
     libraries_load('eventbrite.php');
 
     $authentication_tokens = array(
-      'app_key'  => variable_get('eventbrite_app_key', '');,
-      'user_key' => variable_get('eventbrite_user_key', ''),
+      'app_key'  => $app_key ? $app_key : variable_get('eventbrite_app_key', ''),
+      'user_key' => $user_key ? $user_key : variable_get('eventbrite_user_key', ''),
     );
 
     $eb_client = new Eventbrite($authentication_tokens); 
