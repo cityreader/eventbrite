@@ -194,47 +194,68 @@ function eventbrite_theme() {
   );
 }
 
-/* API FUNCTIONS EXPOSED TO OTHER MODULES
- /*
- * Allows a get-oriented operation to called via the Eventbrite API
- */
+/* API FUNCTIONS EXPOSED TO OTHER MODULES */
+
 /**
+ * Get $eb_client instance
+ */
+function eventbrite_get_instance() {
+  static $eb_client;
+
+  if (empty($eb_client) && eventbrite_is_valid_auth()) {
+    
+    libraries_load('eventbrite.php');
+
+    $authentication_tokens = array(
+      'app_key'  => variable_get('eventbrite_app_key', '');,
+      'user_key' => variable_get('eventbrite_user_key', ''),
+    );
+
+    $eb_client = new Eventbrite($authentication_tokens); 
+  }
+
+  return $eb_client;
+}
+
+/**
+ * Allows a get-oriented operation to called via the Eventbrite API
+ *
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */
-function eventbrite_get($op, $id = NULL) {
-  // Try to load the library and check if that worked.
-  module_load_include('inc', 'eventbrite', 'eventbrite.api');
-  switch ($op) {
-    case 'user_list_events':
-      return _eventbrite_api_get_events();
-    case 'user_list_venues':
-      return _eventbrite_api_get_venues();
-    case 'user_list_organizers':
-      return _eventbrite_api_get_organizers();
-    case 'event_get':
-      if ($id) {
-        return _eventbrite_api_get_event($id);
-      }
-      break;
-    case 'user_get':
-      // This will ge the master user
-      return _eventbrite_api_get_user();
-    case 'user_get_by_email':
-      if ($id) {
-        return _eventbrite_api_get_user($id, 'email');
-      }
-    case 'user_get_by_id':
-      if ($id) {
-        return _eventbrite_api_get_user($id, 'user_id');
-      }
-      break;
-    case 'user_get_by_key':
-      if ($id) {
-        return _eventbrite_api_get_user($id, 'user_key');
-      }
-      break;
+function eventbrite_get($op, $params = array()) {
+  $result = array();
+
+  $eb_client = eventbrite_get_instance();
+
+  if (!$eb_client) {
+    return FALSE;
   }
+
+  $valid_callbacks = array(
+    // Events
+    'event_get',
+    // Users
+    'user_list_events',
+    'user_list_venues',
+    'user_list_organizers',
+    'user_get',
+  );
+
+  if (in_array($op, $valid_callbacks)) {
+    try{
+      $result = $eb_client->$op($params);
+    } catch (Exception $e) {
+      drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
+      watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
+    }
+  }
+  else {
+    drupal_set_message('Eventbrite get operation is not valid', 'error');
+    watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
+  }
+
+  return $result;
 }
 
 /*
@@ -244,30 +265,48 @@ function eventbrite_get($op, $id = NULL) {
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */
-function eventbrite_save($op, $object) {
-  module_load_include('inc', 'eventbrite', 'eventbrite.api');
-  switch ($op) {
-    case 'event_new':
-      return _eventbrite_api_event_new($object);
-    case 'event_update':
-      return _eventbrite_api_event_update($object);
-    case 'organizer_new':
-      return _eventbrite_api_organizer_new($object);
-    case 'organizer_update':
-      return _eventbrite_api_organizer_update($object);
-    case 'payment_update':
-      return _eventbrite_api_payment_update($object);
-    case 'ticket_new':
-      return _eventbrite_api_ticket_new($object);
-    case 'ticket_update':
-      return _eventbrite_api_ticket_update($object);
-    case 'user_new':
-      return _eventbrite_api_user_new($object);
-    case 'venue_new':
-      return _eventbrite_api_venue_new($object);
-    case 'venue_update':
-      return _eventbrite_api_venue_update($object);
+function eventbrite_save($op, $params) {
+  $result = array();
+
+  $eb_client = eventbrite_get_instance();
+
+  if (!$eb_client) {
+    return FALSE;
   }
+
+  $valid_callbacks = array(
+    // Events
+    'event_new',
+    'event_update',
+    // Tickets
+    'ticket_new',
+    'ticket_update',
+    // Venues
+    'venue_new',
+    'venue_update',
+    // Organizer Profiles
+    'organizer_new',
+    'organizer_update',
+    // Users
+    'user_new',
+    // Payments
+    'payment_update',
+  );
+
+  if (in_array($op, $valid_callbacks)) {
+    try{
+      $result = $eb_client->$op($params);
+    } catch (Exception $e) {
+      drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
+      watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
+    }
+  }
+  else {
+    drupal_set_message('Eventbrite save operation is not valid', 'error');
+    watchdog('eventbrite', t('Eventbrite save operation is not valid'), NULL, WATCHDOG_ERROR);
+  }
+
+  return $result;
 }
 
 /*
