@@ -9,9 +9,10 @@
  * Implements hook_libraries_info().
  */
 function eventbrite_libraries_info() {
+  // A very simple library. No changing APIs (hence, no versions), no variants. 
   $libraries['eventbrite.php'] = array(
     'name' => 'PHP Eventbrite API Client Library',
-    'vendor url' => 'http://developer.eventbrite.com/doc/#methods',
+    'vendor url' => 'http://developer.eventbrite.com/doc/libraries',
     'download url' => 'https://github.com/ryanjarvinen/eventbrite.php.git',
     'files' => array(
       'php' => array('Eventbrite.php'),
@@ -160,20 +161,7 @@ function eventbrite_menu() {
 }
 
 
-function eventbrite_libraries_info() {
-  // A very simple library. No changing APIs (hence, no versions), no variants.
-  $libraries['eventbrite'] = array(
-    'name' => 'Eventbrite API library',
-    'vendor url' => 'http://developer.eventbrite.com/doc/libraries',
-    'download url' => 'https://github.com/ryanjarvinen/eventbrite.php',
-    'files' => array(
-      'php' => array('Eventbrite.php'),
-    ),
-    'version' => '1.0',
-  );
 
-  return $libraries;
-}
 /**
  * Implements hook_permissions().
  */
