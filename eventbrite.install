@@ -6,6 +6,53 @@
  */
 
 /**
+ * Implements hook_requirements().
+ */
+function eventbrite_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break at install time
+  $t = get_t();
+
+  if ($phase == 'update') {
+    $path = drupal_get_path('module', 'libraries') . '/libraries.info';
+    $info = drupal_parse_info_file($path);
+    if (version_compare($info['version'], '7.x-2.0', '<')) {
+      $requirements['mailchimp'] = array(
+        'title' => $t('Mailchimp'),
+        'value' => '7.x-2.x',
+        'description' => $t('libraries 2.x is required for Eventbrite 7.x-2.0 or higher.'),
+        'severity' => REQUIREMENT_ERROR
+      );
+      return $requirements;
+    }
+  }
+
+  // Report Drupal version
+  if (in_array($phase, array('runtime', 'update'))) {
+    $library = libraries_detect('eventbrite.php');
+    $requirements['eventbrite.php'] = array(
+      'title' => $t('PHP Eventbrite API Client Library'),
+    );
+
+    if ($library['installed']) {
+      $requirements['eventbrite.php'] += array(
+        'description' => $t('PHP Eventbrite API Client Library is installed correctly.'),
+        'severity' => REQUIREMENT_OK
+      );
+    }
+    else {
+      $requirements['eventbrite.php'] += array(
+        'value' => $library['error'],
+        'description' => $library['error message'],
+        'severity' => REQUIREMENT_ERROR
+      );
+    }
+  }
+
+  return $requirements;
+}
+
+/**
  * Implements hook_schema().
  */
 function eventbrite_schema() {

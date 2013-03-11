@@ -1,6 +1,24 @@
 <?php
 
 /**
+ * @file
+ * Eventbrite module.
+ */
+
+/**
+ * Implements hook_libraries_info().
+ */
+function eventbrite_libraries_info() {
+  $libraries['eventbrite.php'] = array(
+    'name' => 'PHP Eventbrite API Client Library',
+    'vendor url' => 'http://developer.eventbrite.com/doc/#methods',
+    'download url' => 'https://github.com/ryanjarvinen/eventbrite.php.git',
+    'files' => array(
+      'php' => array('Eventbrite.php'),
+    ),
+  );
+
+/**
  * Implements hook_init().
  */
 function eventbrite_init() {

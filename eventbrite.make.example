@@ -1,0 +1,8 @@
+api = 2
+core = 7.x
+projects[libraries] = 2
+
+libraries[mailchimp][download][type] = "git"
+libraries[mailchimp][download][url] = "git://github.com/ryanjarvinen/eventbrite.php.git"
+libraries[mailchimp][directory_name] = "eventbrite"
+libraries[mailchimp][destination] = "libraries"
