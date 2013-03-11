@@ -17,6 +17,7 @@ function eventbrite_libraries_info() {
       'php' => array('Eventbrite.php'),
     ),
   );
+}
 
 /**
  * Implements hook_init().
