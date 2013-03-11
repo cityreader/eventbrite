@@ -160,6 +160,63 @@ function eventbrite_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_entity_info().
+ */
+function eventbrite_entity_info() {
+  $return['eventbrite_event'] = array(
+    'label' => t('Eventbrite Event'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'eventbrite_event',
+    'fieldable' => TRUE,
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'event_id',
+    ),
+    // Make use the class' label() and uri() implementation by default.
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+  );
+
+  $return['eventbrite_venue'] = array(
+    'label' => t('Eventbrite Organizer'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'eventbrite_venue',
+    'fieldable' => TRUE,    
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'venue_id',
+    ),
+    // Make use the class' label() and uri() implementation by default.
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+  );
+
+  $return['eventbrite_organizer'] = array(
+    'label' => t('Eventbrite Organizer'),
+    'entity class' => 'Entity',
+    'controller class' => 'EntityAPIControllerExportable',
+    'base table' => 'eventbrite_organizer',
+    'fieldable' => TRUE,    
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'organizer_id',
+    ),
+    // Make use the class' label() and uri() implementation by default.
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+      // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/config/services/eventbrite/organizers2',
+      'file' => 'eventbrite.organizer.inc',
+//      'controller class' => 'ExampleTaskTypeUIController',
+    ),  
+  );
+
+  return $return;
+}
 
 
 /**

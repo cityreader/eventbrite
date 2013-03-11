@@ -4,6 +4,7 @@ core = 7.x
 package = Eventbrite
 
 dependencies[] = libraries
+dependencies[] = entity
 dependencies[] = date_api
 
 files[] = eventbrite.admin.inc
