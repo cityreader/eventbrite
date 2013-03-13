@@ -170,28 +170,48 @@ function eventbrite_entity_info() {
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'eventbrite_event',
     'fieldable' => TRUE,
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
     'exportable' => TRUE,
     'entity keys' => array(
       'id' => 'event_id',
+      'module' => 'eventbrite',
     ),
     // Make use the class' label() and uri() implementation by default.
     'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
   );
 
   $return['eventbrite_venue'] = array(
-    'label' => t('Eventbrite Organizer'),
+    'label' => t('Eventbrite Venue'),
     'entity class' => 'Entity',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'eventbrite_venue',
     'fieldable' => TRUE,    
     'exportable' => TRUE,
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
     'entity keys' => array(
       'id' => 'venue_id',
+      'module' => 'eventbrite',
     ),
     // Make use the class' label() and uri() implementation by default.
     'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
   );
 
   $return['eventbrite_organizer'] = array(
@@ -199,14 +219,24 @@ function eventbrite_entity_info() {
     'entity class' => 'Entity',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'eventbrite_organizer',
-    'fieldable' => TRUE,    
+    'fieldable' => TRUE,
     'exportable' => TRUE,
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
     'entity keys' => array(
       'id' => 'organizer_id',
+      'module' => 'eventbrite',
     ),
     // Make use the class' label() and uri() implementation by default.
     'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
       // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/organizers2',
@@ -217,6 +247,8 @@ function eventbrite_entity_info() {
 
   return $return;
 }
+
+
 
 
 /**
