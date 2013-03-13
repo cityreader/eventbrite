@@ -1,4 +1,4 @@
-name = Eventbrite
+name = Eventbrite API
 description = Implements the Eventbrite API for other Drupal modules in the Eventbrite package.  On its own, this module does not add any features.
 core = 7.x
 package = Eventbrite
