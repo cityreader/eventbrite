@@ -18,6 +18,7 @@ function eventbrite_libraries_info() {
       'php' => array('Eventbrite.php'),
     ),
     'version' => '1.0',
+    'error message' => t('Download PHP Eventbrite API Client Library'),
   );
 
   return $libraries;
@@ -167,9 +168,13 @@ function eventbrite_entity_info() {
   $return['eventbrite_event'] = array(
     'label' => t('Eventbrite Event'),
     'entity class' => 'Entity',
-    'controller class' => 'EntityAPIControllerExportable',
+    'controller class' => 'EntityAPIController',
     'base table' => 'eventbrite_event',
     'fieldable' => TRUE,
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'event_id',
+    ),
     'view modes' => array(
       'full' => array(
         'label' => t('Full content'),
@@ -180,13 +185,9 @@ function eventbrite_entity_info() {
         'custom settings' => TRUE,
       ),
     ),
-    'exportable' => TRUE,
-    'entity keys' => array(
-      'id' => 'event_id',
-      'module' => 'eventbrite',
-    ),
-    // Make use the class' label() and uri() implementation by default.
     'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'module' => 'eventbrite',
   );
 
   $return['eventbrite_venue'] = array(
@@ -196,22 +197,30 @@ function eventbrite_entity_info() {
     'base table' => 'eventbrite_venue',
     'fieldable' => TRUE,    
     'exportable' => TRUE,
-    'view modes' => array(
-      'full' => array(
-        'label' => t('Full content'),
-        'custom settings' => FALSE,
-      ),
-      'teaser' => array(
-        'label' => t('Teaser'),
-        'custom settings' => TRUE,
-      ),
-    ),
+//    'view modes' => array(
+//      'full' => array(
+//        'label' => t('Full content'),
+//        'custom settings' => FALSE,
+//      ),
+//      'teaser' => array(
+//        'label' => t('Teaser'),
+//        'custom settings' => TRUE,
+//      ),
+//    ),
     'entity keys' => array(
       'id' => 'venue_id',
-      'module' => 'eventbrite',
+      'name' => 'venue_id',
+      'status' => 'entity_status',
     ),
-    // Make use the class' label() and uri() implementation by default.
     'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'module' => 'eventbrite',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/config/services/eventbrite/venues2',
+      'file' => 'eventbrite.organizer.inc',
+      'controller class' => 'EntityDefaultUIController',
+    ),
   );
 
   $return['eventbrite_organizer'] = array(
@@ -221,28 +230,35 @@ function eventbrite_entity_info() {
     'base table' => 'eventbrite_organizer',
     'fieldable' => TRUE,
     'exportable' => TRUE,
-    'view modes' => array(
-      'full' => array(
-        'label' => t('Full content'),
-        'custom settings' => FALSE,
-      ),
-      'teaser' => array(
-        'label' => t('Teaser'),
-        'custom settings' => TRUE,
-      ),
-    ),
     'entity keys' => array(
       'id' => 'organizer_id',
-      'module' => 'eventbrite',
+      'name' => 'organizer_id',
+      'status' => 'entity_status',
     ),
-    // Make use the class' label() and uri() implementation by default.
+//    'bundles' => array(
+//      'eventbrite_organizer' => array(
+//        'label' => t('Eventbrite Organizer'),
+//      ),
+//    ),
+//    'view modes' => array(
+//      'full' => array(
+//        'label' => t('Full content'),
+//        'custom settings' => FALSE,
+//      ),
+//      'teaser' => array(
+//        'label' => t('Teaser'),
+//        'custom settings' => TRUE,
+//      ),
+//    ),
     'label callback' => 'entity_class_label',
-      // Enable the entity API's admin UI.
+    'uri callback' => 'entity_class_uri',
+    'module' => 'eventbrite',
+    // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/organizers2',
       'file' => 'eventbrite.organizer.inc',
-//      'controller class' => 'ExampleTaskTypeUIController',
-    ),  
+      'controller class' => 'EntityDefaultUIController',
+    ),
   );
 
   return $return;

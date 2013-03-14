@@ -157,6 +157,15 @@ function eventbrite_schema() {
         'type' => 'float',
         'not null' => FALSE,
       ),
+      'entity_status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
     ),
     'primary key' => array('venue_id'),
   );
@@ -195,6 +204,15 @@ function eventbrite_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
+      'entity_status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
     ),
     'primary key' => array('organizer_id'),
   );
@@ -224,4 +242,22 @@ function eventbrite_uninstall() {
   ->condition('name', 'eventbrite_%', 'LIKE')
   ->execute();
   cache_clear_all('variables', 'cache');
+}
+
+/**
+ * @addtogroup updates-6.x-to-7.x
+ * @{
+ */
+
+/**
+ * Add entity_status to eventbrite_venue and eventbrite_organizer tables
+ *
+ * entity_status is used for entity exportable feature.
+ */
+function eventbrite_update_7000() {
+  $schema = drupal_get_schema('eventbrite_venue');
+  db_add_field('eventbrite_venue', 'entity_status', $schema['fields']['entity_status']);
+
+  $schema = drupal_get_schema('eventbrite_organizer');
+  db_add_field('eventbrite_organizer', 'entity_status', $schema['fields']['entity_status']);
 }
