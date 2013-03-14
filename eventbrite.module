@@ -32,9 +32,9 @@ function eventbrite_init() {
 }
 
 /*
- * Implementation of hook_menu().
- */
-/**
+ * Implements of hook_menu().
+ *
+ *
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */
@@ -218,9 +218,10 @@ function eventbrite_entity_info() {
     // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/venues2',
-      'file' => 'eventbrite.organizer.inc',
+      'file' => 'eventbrite.venue.inc',
       'controller class' => 'EntityDefaultUIController',
     ),
+    'access callback' => 'eventbrite_access',    
   );
 
   $return['eventbrite_organizer'] = array(
@@ -259,13 +260,24 @@ function eventbrite_entity_info() {
       'file' => 'eventbrite.organizer.inc',
       'controller class' => 'EntityDefaultUIController',
     ),
+    'access callback' => 'eventbrite_access',
   );
 
   return $return;
 }
 
+/**
+ * Implements hook_menu_alter()
+ */
+function eventbrite_menu_alter(&$items) {
+  if (isset($items['admin/config/services/eventbrite/venue2'])) {
+    $items['admin/config/services/eventbrite/venue2']['type'] = MENU_LOCAL_TASK;
+  }
 
-
+  if (isset($items['admin/config/services/eventbrite/organizers2'])) {
+    $items['admin/config/services/eventbrite/organizers2']['type'] = MENU_LOCAL_TASK;
+  }
+}
 
 /**
  * Implements hook_permissions().
@@ -282,6 +294,26 @@ function eventbrite_permission() {
     ),
   );
 }
+
+/**
+ * Access check for Eventbrite admin UI page
+ */
+function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
+  switch ($entity_type) {
+     case 'eventbrite_venue':
+       return user_access('administer eventbrite venues', $account);
+     
+     case 'eventbrite_organizer':
+       return user_access('administer eventbrite settings', $account);
+   }
+
+  // if ($op == 'create' || $op == 'update') {
+  //   $op = 'edit';
+  // }
+  // Allow modules to grant / deny access.
+  return FALSE;
+}
+
 
 /**
  * Implements hook_theme().
