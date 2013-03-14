@@ -16,9 +16,11 @@ function eventbrite_requirements($phase) {
   if ($phase == 'update') {
     $path = drupal_get_path('module', 'libraries') . '/libraries.info';
     $info = drupal_parse_info_file($path);
-    if (version_compare($info['version'], '7.x-2.0', '<')) {
-      $requirements['mailchimp'] = array(
-        'title' => $t('Mailchimp'),
+    // version_compare() will return that '7.x-2.0-alpha1' version is less than '7.x-2.0'
+    // so we compare it with '7.x-2.0-dev' in case any user use alpha version.
+    if (version_compare($info['version'], '7.x-2.0-dev', '<')) {
+      $requirements['eventbrite'] = array(
+        'title' => $t('Eventbrite'),
         'value' => '7.x-2.x',
         'description' => $t('libraries 2.x is required for Eventbrite 7.x-2.0 or higher.'),
         'severity' => REQUIREMENT_ERROR
