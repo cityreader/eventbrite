@@ -5,6 +5,9 @@
  * Eventbrite module.
  */
 
+define('EVENTBRITE_URL_ORG', 'http://www.eventbrite.com/org');
+
+
 /**
  * Implements hook_libraries_info().
  */
@@ -56,17 +59,17 @@ function eventbrite_menu() {
     'weight' => -1,
   );
 
-  $items['admin/config/services/eventbrite/organizers'] = array(
-    'title' => 'Organizers',
-    'description' => 'List Eventbrite organizers',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('eventbrite_organizer_list_form'),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer eventbrite settings'),
-    'file' => 'eventbrite.organizer.inc',
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 2,
-  );
+//  $items['admin/config/services/eventbrite/organizers'] = array(
+//    'title' => 'Organizers',
+//    'description' => 'List Eventbrite organizers',
+//    'page callback' => 'drupal_get_form',
+//    'page arguments' => array('eventbrite_organizer_list_form'),
+//    'access callback' => 'user_access',
+//    'access arguments' => array('administer eventbrite settings'),
+//    'file' => 'eventbrite.organizer.inc',
+//    'type' => MENU_LOCAL_TASK,
+//    'weight' => 2,
+//  );
 
   // $items['admin/config/services/eventbrite/organizers/list'] = array(
   //   'title' => 'List Organizers',
@@ -209,6 +212,7 @@ function eventbrite_entity_info() {
 //    ),
     'entity keys' => array(
       'id' => 'venue_id',
+      'label' => 'name',
       'name' => 'venue_id',
       'status' => 'entity_status',
     ),
@@ -226,13 +230,14 @@ function eventbrite_entity_info() {
 
   $return['eventbrite_organizer'] = array(
     'label' => t('Eventbrite Organizer'),
-    'entity class' => 'Entity',
+    'entity class' => 'EventbriteOrganizer',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'eventbrite_organizer',
     'fieldable' => TRUE,
     'exportable' => TRUE,
     'entity keys' => array(
       'id' => 'organizer_id',
+      'label' => 'name',
       'name' => 'organizer_id',
       'status' => 'entity_status',
     ),
@@ -256,7 +261,7 @@ function eventbrite_entity_info() {
     'module' => 'eventbrite',
     // Enable the entity API's admin UI.
     'admin ui' => array(
-      'path' => 'admin/config/services/eventbrite/organizers2',
+      'path' => 'admin/config/services/eventbrite/organizers',
       'file' => 'eventbrite.organizer.inc',
       'controller class' => 'EventbriteEntityUIController',
     ),
@@ -320,10 +325,10 @@ function eventbrite_theme() {
       'render element' => 'form',
       'file' => 'eventbrite.venue.inc',
     ),
-    'eventbrite_organizer_list_form' => array(
-      'render element' => 'form',
-      'file' => 'eventbrite.organizer.inc',
-    ),
+//    'eventbrite_organizer_list_form' => array(
+//      'render element' => 'form',
+//      'file' => 'eventbrite.organizer.inc',
+//    ),
   );
 }
 
@@ -368,6 +373,8 @@ function eventbrite_get($op, $params = array()) {
   $valid_callbacks = array(
     // Events
     'event_get',
+    // Organizers
+    'organizer_get',
     // Users
     'user_list_events',
     'user_list_venues',
@@ -497,4 +504,61 @@ function eventbrite_get_events_options($id = null, $allow_historical = false) {
  */
 function eventbrite_is_valid_auth() {
   return variable_get('eventbrite_is_valid_auth', FALSE);
+}
+
+/**
+ * The class used for Eventbrite organizer entities.
+ */
+class EventbriteOrganizer extends Entity {
+
+  public $organizer_id;
+  public $status;
+  public $name;
+  public $url;
+  public $description;
+
+  public function defaultLabel() {
+    return $this->name;
+  }
+
+  /**
+   * Overrides Entity::save().
+   */
+  public function save() {
+    // Care about setting created and changed values. But do not automatically
+    // set a created values for already existing profiles.
+//    if (empty($this->created) && (!empty($this->is_new) || !$this->pid)) {
+//      $this->created = REQUEST_TIME;
+//    }
+//    $this->changed = REQUEST_TIME;
+
+    $params = array(
+      'name' => $this->name,
+      'description' => $this->description,
+    );
+
+    if ($this->organizer_id) {
+      $params['id'] = $this->organizer_id;
+    }
+
+    $api_callback = !empty($this->is_new) ? 'organizer_new' : 'organizer_update';
+
+    $result = eventbrite_save($api_callback, $params);
+
+    if ($result->process->status === 'OK') {
+      $this->organizer_id = (string) $result->process->id;
+    }
+
+    dpm($result);
+    dpm($this);
+//
+//    dpm(eventbrite_get('organizer_get', $params));
+
+    parent::save();
+//    // Update the static cache from profile2_load_by_user().
+//    $cache = &drupal_static('profile2_load_by_user', array());
+//    if (isset($cache[$this->uid])) {
+//      $cache[$this->uid][$this->type] = $this->pid;
+//    }
+  }
 }
