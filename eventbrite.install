@@ -108,7 +108,7 @@ function eventbrite_schema() {
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
         'type' => 'int',
-        'size' => 'big',
+        'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
@@ -184,7 +184,7 @@ function eventbrite_schema() {
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
         'type' => 'int',
-        'size' => 'big',
+        'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
