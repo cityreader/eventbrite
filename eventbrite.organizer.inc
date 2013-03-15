@@ -6,6 +6,21 @@
  */
 
 /**
+ * UI controller.
+ */
+class EventbriteEntityUIController extends EntityDefaultUIController {
+
+  /**
+   * Overrides hook_menu() defaults.
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    return $items;
+  }
+}
+
+/**
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */

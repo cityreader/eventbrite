@@ -258,7 +258,7 @@ function eventbrite_entity_info() {
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/organizers2',
       'file' => 'eventbrite.organizer.inc',
-      'controller class' => 'EntityDefaultUIController',
+      'controller class' => 'EventbriteEntityUIController',
     ),
     'access callback' => 'eventbrite_access',
   );
@@ -272,10 +272,6 @@ function eventbrite_entity_info() {
 function eventbrite_menu_alter(&$items) {
   if (isset($items['admin/config/services/eventbrite/venue2'])) {
     $items['admin/config/services/eventbrite/venue2']['type'] = MENU_LOCAL_TASK;
-  }
-
-  if (isset($items['admin/config/services/eventbrite/organizers2'])) {
-    $items['admin/config/services/eventbrite/organizers2']['type'] = MENU_LOCAL_TASK;
   }
 }
 
