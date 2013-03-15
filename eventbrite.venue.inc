@@ -6,6 +6,56 @@
  */
 
 /**
+ * UI controller.
+ */
+class EventbriteVenueUIController extends EntityDefaultUIController {
+
+  /**
+   * Overrides hook_menu() defaults.
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $items[$this->path]['title'] = t('Venues');
+    $items[$this->path]['type'] = MENU_LOCAL_TASK;
+    return $items;
+  }
+
+  /**
+   * Overrides EntityDefaultUIController::overviewTableHeaders().
+   */
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $header = parent::overviewTableHeaders($conditions, $rows, $additional_header);
+
+    // Change table column name from "Label" to "Organizer Name"
+    $header[0] = t('Venue Name');
+//    $extra = array(
+//      t('Description'),
+//      t('URL'),
+//    );
+//    array_splice($header, 1, 0, $extra);
+    return $header;
+  }
+
+  /**
+   * Overrides EntityDefaultUIController::overviewTableRow().
+   */
+  protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+    $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
+
+//    $extra[] = array(
+//      'data'=> $entity->description,
+//    );
+//    $url = EVENTBRITE_URL_ORG . '/' . $entity->organizer_id;
+//    $extra[] = array(
+//      'data'=> l($url, $url, array('attributes' => array('target' => '_blank'))),
+//    );
+//    array_splice($row, 1, 0, $extra);
+    
+    return $row;
+  }
+}
+
+/**
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */

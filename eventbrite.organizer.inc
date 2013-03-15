@@ -8,7 +8,7 @@
 /**
  * UI controller.
  */
-class EventbriteEntityUIController extends EntityDefaultUIController {
+class EventbriteOrganizerUIController extends EntityDefaultUIController {
 
   /**
    * Overrides hook_menu() defaults.

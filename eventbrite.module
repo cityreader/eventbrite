@@ -105,17 +105,17 @@ function eventbrite_menu() {
 
   // // VENUES
 
-  // $items['admin/config/services/eventbrite/venues'] = array(
-  //   'title' => 'Venues',
-  //   'description' => 'List Eventbrite venues',
-  //   'page callback' => 'drupal_get_form',
-  //   'page arguments' => array('eventbrite_venue_list_form'),
-  //   'access callback' => 'user_access',
-  //   'access arguments' => array('administer eventbrite settings'),
-  //   'file' => 'eventbrite.venue.inc',
-  //   'type' => MENU_LOCAL_TASK,
-  //   'weight' => 2,
-  // );
+   $items['admin/config/services/eventbrite/venues'] = array(
+     'title' => 'Venues',
+     'description' => 'List Eventbrite venues',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('eventbrite_venue_list_form'),
+     'access callback' => 'user_access',
+     'access arguments' => array('administer eventbrite settings'),
+     'file' => 'eventbrite.venue.inc',
+     'type' => MENU_LOCAL_TASK,
+     'weight' => 2,
+   );
 
   // $items['admin/config/services/eventbrite/venues/list'] = array(
   //   'title' => 'List Venues',
@@ -195,10 +195,10 @@ function eventbrite_entity_info() {
 
   $return['eventbrite_venue'] = array(
     'label' => t('Eventbrite Venue'),
-    'entity class' => 'Entity',
+    'entity class' => 'EventbriteVenue',
     'controller class' => 'EntityAPIControllerExportable',
     'base table' => 'eventbrite_venue',
-    'fieldable' => TRUE,    
+    'fieldable' => TRUE,
     'exportable' => TRUE,
 //    'view modes' => array(
 //      'full' => array(
@@ -223,9 +223,9 @@ function eventbrite_entity_info() {
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/venues2',
       'file' => 'eventbrite.venue.inc',
-      'controller class' => 'EntityDefaultUIController',
+      'controller class' => 'EventbriteVenueUIController',
     ),
-    'access callback' => 'eventbrite_access',    
+    'access callback' => 'eventbrite_access',
   );
 
   $return['eventbrite_organizer'] = array(
@@ -263,7 +263,7 @@ function eventbrite_entity_info() {
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/organizers',
       'file' => 'eventbrite.organizer.inc',
-      'controller class' => 'EventbriteEntityUIController',
+      'controller class' => 'EventbriteOrganizerUIController',
     ),
     'access callback' => 'eventbrite_access',
   );
@@ -504,6 +504,68 @@ function eventbrite_get_events_options($id = null, $allow_historical = false) {
  */
 function eventbrite_is_valid_auth() {
   return variable_get('eventbrite_is_valid_auth', FALSE);
+}
+
+/**
+ * The class used for Eventbrite organizer entities.
+ */
+class EventbriteVenue extends Entity {
+
+  public $venue_id;
+  public $organizer_id;
+  public $status;
+  public $name;
+
+  public function defaultLabel() {
+    return $this->name;
+  }
+
+  /**
+   * Overrides Entity::save().
+   */
+  public function save() {
+    // Care about setting created and changed values. But do not automatically
+    // set a created values for already existing profiles.
+//    if (empty($this->created) && (!empty($this->is_new) || !$this->pid)) {
+//      $this->created = REQUEST_TIME;
+//    }
+//    $this->changed = REQUEST_TIME;
+
+    $params = array(
+      'organizer_id' => $this->organizer_id,
+      'name' => $this->name,
+      'address' => '',
+      'address_2' => '',
+      'city' => '',
+      'region' => '',
+      'postal_code' => '',
+      'country_code' => '',
+    );
+
+    if ($this->venue_id) {
+      $params['id'] = $this->venue_id;
+    }
+
+    $api_callback = !empty($this->is_new) ? 'venue_new' : 'venue_update';
+
+    $result = eventbrite_save($api_callback, $params);
+
+    if ($result->process->status === 'OK') {
+      $this->venue_id = (string) $result->process->id;
+    }
+
+    dpm($result);
+    dpm($this);
+//
+//    dpm(eventbrite_get('organizer_get', $params));
+
+    parent::save();
+//    // Update the static cache from profile2_load_by_user().
+//    $cache = &drupal_static('profile2_load_by_user', array());
+//    if (isset($cache[$this->uid])) {
+//      $cache[$this->uid][$this->type] = $this->pid;
+//    }
+  }
 }
 
 /**
