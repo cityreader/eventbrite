@@ -97,6 +97,7 @@ function eventbrite_schema() {
         'description' => "The Eventbrite venue id.",
         'type' => 'int',
         'size' => 'normal',
+        'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'user_key' => array(
@@ -107,7 +108,8 @@ function eventbrite_schema() {
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
         'type' => 'int',
-        'size' => 'normal',
+        'size' => 'big',
+        'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'status' => array(
@@ -182,7 +184,8 @@ function eventbrite_schema() {
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
         'type' => 'int',
-        'size' => 'normal',
+        'size' => 'big',
+        'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'status' => array(
@@ -259,7 +262,10 @@ function eventbrite_uninstall() {
 function eventbrite_update_7000() {
   $schema = drupal_get_schema('eventbrite_venue');
   db_add_field('eventbrite_venue', 'entity_status', $schema['fields']['entity_status']);
+  db_change_field('eventbrite_venue', 'organizer_id', 'organizer_id', $schema['fields']['organizer_id']);
+  db_change_field('eventbrite_venue', 'venue_id', 'venue_id', $schema['fields']['venue_id']);
 
   $schema = drupal_get_schema('eventbrite_organizer');
   db_add_field('eventbrite_organizer', 'entity_status', $schema['fields']['entity_status']);
+  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', $schema['fields']['organizer_id']);
 }
