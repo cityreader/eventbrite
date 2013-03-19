@@ -551,6 +551,14 @@ class EventbriteVenue extends Entity {
     $result = eventbrite_save($api_callback, $params);
 
     if ($result->process->status === 'OK') {
+
+      if (!empty($this->is_new)) {
+        drupal_set_message(t('This organizer has been created on the Eventbrite server.'));
+      }
+      else {
+        drupal_set_message(t('This organizer has been updated on the Eventbrite server.'));
+      }
+
       $this->venue_id = (string) $result->process->id;
     }
 
