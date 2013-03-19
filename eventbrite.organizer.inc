@@ -11,13 +11,53 @@
 class EventbriteOrganizerUIController extends EntityDefaultUIController {
 
   /**
-   * Overrides hook_menu() defaults.
+   * Overrides EntityDefaultUIController::hook_menu() defaults.
    */
   public function hook_menu() {
     $items = parent::hook_menu();
     $items[$this->path]['title'] = t('Organizers');
     $items[$this->path]['type'] = MENU_LOCAL_TASK;
     return $items;
+  }
+
+  /**
+   * Overrides EntityDefaultUIController::overviewForm() defaults.
+   */
+  public function overviewForm($form, &$form_state) {
+    $form = parent::overviewForm($form, $form_state);
+
+    $enabled_organizers = eventbrite_organizer_get_enabled();
+
+    $form['default_organizer'] = array(
+      '#type' => 'select',
+      '#title' => t('Default Organizer'),
+      '#default_value' => variable_get('eventbrite_organizer_default', ''),
+      '#options' => $enabled_organizers,
+      '#required' => TRUE,
+    );
+
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save configuration'),
+      '#weight' => 100,
+    );
+
+    return $form;
+  }
+
+  /**
+   * Overview form validation callback.
+   */
+  public function overviewFormValidate($form, &$form_state) {
+    $default_organizer = $form_state['values']['default_organizer'];
+  }
+
+  /**
+   * Overview form submit callback.
+   */
+  public function overviewFormSubmit($form, &$form_state) {
+    variable_set('eventbrite_organizer_default', $form_state['values']['default_organizer']);
   }
 
   /**
@@ -201,6 +241,7 @@ function eventbrite_organizer_get_enabled() {
   else {
     // If Eventbrite OG is not overriding this field, use default user key for filtering
     $default_organizers = eventbrite_get('user_list_organizers');
+
     $filter_organizers = array_keys($default_organizers);
   }
 

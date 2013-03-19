@@ -388,11 +388,27 @@ function eventbrite_get($op, $params = array()) {
     } catch (Exception $e) {
       drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
       watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
+      return;
     }
   }
   else {
     drupal_set_message('Eventbrite get operation is not valid', 'error');
     watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
+    return;
+  }
+
+  if (strpos($op, 'user_list') !== FALSE) {
+    $plural_label = substr($op, 10);
+    $label = substr($op, 10, -1);
+    $return = array();
+
+    foreach ($result->$plural_label as $object) {
+      $entry = $object->$label;
+
+      $return[(string) $entry->id] = $entry;
+    }
+
+    $result = $return;
   }
 
   return $result;
@@ -617,6 +633,7 @@ class EventbriteOrganizer extends Entity {
 
     if ($result->process->status === 'OK') {
       $this->organizer_id = (string) $result->process->id;
+      $this->status = 1;
     }
 
     dpm($result);
