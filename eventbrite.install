@@ -110,9 +110,8 @@ function eventbrite_schema() {
       ),
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
+        'type' => 'varchar',
+        'length' => '20',
         'not null' => FALSE,
       ),
       'status' => array(
@@ -183,7 +182,7 @@ function eventbrite_schema() {
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
         'type' => 'varchar',
-        'size' => '20',
+        'length' => '20',
         'not null' => TRUE,
       ),
       'status' => array(
@@ -288,7 +287,7 @@ function eventbrite_update_7003() {
 
   db_add_field('eventbrite_organizer', 'id', array('type' => 'serial', 'not null' => TRUE, 'description' => 'Primary Key: eventbrite_organizer entity id for internal use.'), array('primary key' => array('id')));
 
-  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'varchar', 'size' => '20', 'not null' => TRUE));
+  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'varchar', 'length' => '20', 'not null' => TRUE));
 
   db_add_unique_key('eventbrite_organizer', 'organizer_id', array('organizer_id'));
 }
