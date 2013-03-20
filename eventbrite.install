@@ -58,38 +58,41 @@ function eventbrite_requirements($phase) {
  * Implements hook_schema().
  */
 function eventbrite_schema() {
-  $schema['eventbrite_cache'] = array(
-    'fields' => array(
-      'op' => array(
-        'type' => 'varchar',
-        'length' => 32,
-        'not null' => TRUE,
-      ),
-      'id' => array(
-        'type' => 'int',
-        'size' => 'big',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'query_string' => array(
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
-      ),
-      'timestamp' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'result' => array(
-        'type' => 'text',
-        'not null' => TRUE,
-        'size' => 'big',
-      ),
-    ),
-    'primary key' => array('op', 'id', 'query_string'),
-  );
+  $schema['cache_eventbrite'] = drupal_get_schema_unprocessed('system', 'cache');
+  $schema['cache_eventbrite']['description'] = 'Cache table for the Eventbrite module to store info fetched from Eventbrite website.';
+
+//  $schema['eventbrite_cache'] = array(
+//    'fields' => array(
+//      'op' => array(
+//        'type' => 'varchar',
+//        'length' => 32,
+//        'not null' => TRUE,
+//      ),
+//      'id' => array(
+//        'type' => 'int',
+//        'size' => 'big',
+//        'unsigned' => TRUE,
+//        'not null' => TRUE,
+//        'default' => 0,
+//      ),
+//      'query_string' => array(
+//        'type' => 'varchar',
+//        'length' => 128,
+//        'not null' => TRUE,
+//      ),
+//      'timestamp' => array(
+//        'type' => 'int',
+//        'not null' => TRUE,
+//        'default' => 0,
+//      ),
+//      'result' => array(
+//        'type' => 'text',
+//        'not null' => TRUE,
+//        'size' => 'big',
+//      ),
+//    ),
+//    'primary key' => array('op', 'id', 'query_string'),
+//  );
 
   $schema['eventbrite_venue'] = array(
     'fields' => array(
@@ -255,17 +258,34 @@ function eventbrite_uninstall() {
  */
 
 /**
- * Add entity_status to eventbrite_venue and eventbrite_organizer tables
- *
- * entity_status is used for entity exportable feature.
+ * Update `eventbrite_organizer` table by adding new `entity_status` field and changing `venue_id` and `organizer_id` to 'unsigned'.
  */
 function eventbrite_update_7000() {
-  $schema = drupal_get_schema('eventbrite_venue');
-  db_add_field('eventbrite_venue', 'entity_status', $schema['fields']['entity_status']);
-  db_change_field('eventbrite_venue', 'organizer_id', 'organizer_id', $schema['fields']['organizer_id']);
-  db_change_field('eventbrite_venue', 'venue_id', 'venue_id', $schema['fields']['venue_id']);
+  db_add_field('eventbrite_venue', 'entity_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0x01, 'size' => 'tiny', 'description' => 'The exportable status of the entity.'));
+  db_change_field('eventbrite_venue', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
+  db_change_field('eventbrite_venue', 'venue_id', 'venue_id',  array('description' => "The Eventbrite venue id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
 
-  $schema = drupal_get_schema('eventbrite_organizer');
-  db_add_field('eventbrite_organizer', 'entity_status', $schema['fields']['entity_status']);
-  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', $schema['fields']['organizer_id']);
+}
+
+/**
+ * Update `eventbrite_organizer` table by adding new `entity_status` field and changing `organizer_id` to 'unsigned'.
+ */
+function eventbrite_update_7001() {
+  db_add_field('eventbrite_organizer', 'entity_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0x01, 'size' => 'tiny', 'description' => 'The exportable status of the entity.'));
+  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
+}
+
+/**
+ * Replace `eventbrite_cache` table with `cache_eventbrite`.
+ */
+function eventbrite_update_7002() {
+  if (db_table_exists('eventbrite_cache')) {
+    db_drop_table('eventbrite_cache');
+  }
+
+  if (!db_table_exists('cache_eventbrite')) {
+    $schema['cache_eventbrite'] = drupal_get_schema_unprocessed('system', 'cache');
+    $schema['cache_eventbrite']['description'] = 'Cache table for the Eventbrite module to store info fetched from Eventbrite website.';
+    db_create_table('cache_eventbrite', $schema['cache_eventbrite']);
+  }
 }

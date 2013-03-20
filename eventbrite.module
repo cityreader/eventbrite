@@ -382,7 +382,20 @@ function eventbrite_get($op, $params = array()) {
     'user_get',
   );
 
-  if (in_array($op, $valid_callbacks)) {
+  if (!in_array($op, $valid_callbacks)) {
+    drupal_set_message('Eventbrite get operation is not valid', 'error');
+    watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
+    return;
+  }
+
+
+  $user_key = variable_get('eventbrite_user_key', '');
+  $cid = $op . ':' . $user_key;
+
+  if ($cache = cache_get($cid, 'cache_eventbrite')) {
+    $result = $cache->data;
+  }
+  else {
     try{
       $result = $eb_client->$op($params);
     } catch (Exception $e) {
@@ -390,25 +403,22 @@ function eventbrite_get($op, $params = array()) {
       watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
       return;
     }
-  }
-  else {
-    drupal_set_message('Eventbrite get operation is not valid', 'error');
-    watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
-    return;
-  }
 
-  if (strpos($op, 'user_list') !== FALSE) {
-    $plural_label = substr($op, 10);
-    $label = substr($op, 10, -1);
-    $return = array();
+    if (strpos($op, 'user_list') !== FALSE) {
+      $plural_label = substr($op, 10);
+      $label = substr($op, 10, -1);
+      $data = array();
 
-    foreach ($result->$plural_label as $object) {
-      $entry = $object->$label;
+      foreach ($result->$plural_label as $object) {
+        $entry = $object->$label;
 
-      $return[(string) $entry->id] = $entry;
+        $data[(string) $entry->id] = $entry;
+      }
+
+      $result = $data;
+
+      cache_set($cid, $data, 'cache_eventbrite', 60 * variable_get('eventbrite_cache_minimum', 5));
     }
-
-    $result = $return;
   }
 
   return $result;
@@ -522,6 +532,25 @@ function eventbrite_is_valid_auth() {
   return variable_get('eventbrite_is_valid_auth', FALSE);
 }
 
+
+
+/**
+ * Create a organizer object.
+ */
+function eventbrite_orgnizer_create($values = array()) {
+  return entity_get_controller('eventbrit_orgnizer')->create($values);
+}
+
+/**
+ * Saves an organizer to the database.
+ *
+ * @param EventbriteOrganizer $organizer
+ *   The organizer object.
+ */
+function eventbrite_orgnizer_save(EventbriteOrganizer $organizer) {
+  return $organizer->save();
+}
+
 /**
  * The class used for Eventbrite organizer entities.
  */
@@ -618,23 +647,27 @@ class EventbriteOrganizer extends Entity {
 //    }
 //    $this->changed = REQUEST_TIME;
 
-    $params = array(
-      'name' => $this->name,
-      'description' => $this->description,
-    );
+    // Only save data remotely to Eventbrite in a form submission 
+    if (isset($this->form_id)) {
+      $params = array(
+        'name' => $this->name,
+        'description' => $this->description,
+      );
 
-    if ($this->organizer_id) {
-      $params['id'] = $this->organizer_id;
+      if ($this->organizer_id) {
+        $params['id'] = $this->organizer_id;
+      }
+
+      $api_callback = !empty($this->is_new) ? 'organizer_new' : 'organizer_update';
+
+      $result = eventbrite_save($api_callback, $params);
+
+      if ($result->process->status === 'OK') {
+        $this->organizer_id = (string) $result->process->id;
+      }
     }
 
-    $api_callback = !empty($this->is_new) ? 'organizer_new' : 'organizer_update';
-
-    $result = eventbrite_save($api_callback, $params);
-
-    if ($result->process->status === 'OK') {
-      $this->organizer_id = (string) $result->process->id;
-      $this->status = 1;
-    }
+    $this->status = 1;
 
     dpm($result);
     dpm($this);
