@@ -164,21 +164,17 @@ function eventbrite_schema() {
         'type' => 'float',
         'not null' => FALSE,
       ),
-      'entity_status' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        // Set the default to ENTITY_CUSTOM without using the constant as it is
-        // not safe to use it at this point.
-        'default' => 0x01,
-        'size' => 'tiny',
-        'description' => 'The exportable status of the entity.',
-      ),
     ),
     'primary key' => array('venue_id'),
   );
 
   $schema['eventbrite_organizer'] = array(
     'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: eventbrite_organizer entity id for internal use.',
+      ),
       'user_key' => array(
         'type' => 'varchar',
         'length' => 32,
@@ -186,9 +182,8 @@ function eventbrite_schema() {
       ),
       'organizer_id' => array(
         'description' => "The Eventbrite organizer id.",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
+        'type' => 'varchar',
+        'size' => '20',
         'not null' => TRUE,
       ),
       'status' => array(
@@ -202,27 +197,21 @@ function eventbrite_schema() {
         'length' => 32,
         'not null' => FALSE,
       ),
-      'url' => array(
-        'type' => 'varchar',
-        'length' => 32,
-        'not null' => FALSE,
-      ),
+//      'url' => array(
+//        'type' => 'varchar',
+//        'length' => 32,
+//        'not null' => FALSE,
+//      ),
       'description' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
-      'entity_status' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        // Set the default to ENTITY_CUSTOM without using the constant as it is
-        // not safe to use it at this point.
-        'default' => 0x01,
-        'size' => 'tiny',
-        'description' => 'The exportable status of the entity.',
-      ),
     ),
-    'primary key' => array('organizer_id'),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'organizer_id' => array('organizer_id'),
+    ),
   );
 
   return $schema;
@@ -258,27 +247,9 @@ function eventbrite_uninstall() {
  */
 
 /**
- * Update `eventbrite_organizer` table by adding new `entity_status` field and changing `venue_id` and `organizer_id` to 'unsigned'.
+ * Replace table `eventbrite_cache` with table `cache_eventbrite`.
  */
 function eventbrite_update_7000() {
-  db_add_field('eventbrite_venue', 'entity_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0x01, 'size' => 'tiny', 'description' => 'The exportable status of the entity.'));
-  db_change_field('eventbrite_venue', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
-  db_change_field('eventbrite_venue', 'venue_id', 'venue_id',  array('description' => "The Eventbrite venue id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
-
-}
-
-/**
- * Update `eventbrite_organizer` table by adding new `entity_status` field and changing `organizer_id` to 'unsigned'.
- */
-function eventbrite_update_7001() {
-  db_add_field('eventbrite_organizer', 'entity_status', array('type' => 'int', 'not null' => TRUE, 'default' => 0x01, 'size' => 'tiny', 'description' => 'The exportable status of the entity.'));
-  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
-}
-
-/**
- * Replace `eventbrite_cache` table with `cache_eventbrite`.
- */
-function eventbrite_update_7002() {
   if (db_table_exists('eventbrite_cache')) {
     db_drop_table('eventbrite_cache');
   }
@@ -289,3 +260,36 @@ function eventbrite_update_7002() {
     db_create_table('cache_eventbrite', $schema['cache_eventbrite']);
   }
 }
+
+/**
+ * Drop field `url` from table `eventbrite_organizer`.
+ */
+function eventbrite_update_7001() {
+  db_drop_field('eventbrite_organizer', 'url');
+}
+
+/**
+ * Update `eventbrite_organizer` table by changing `venue_id` and `organizer_id` to 'unsigned'.
+ */
+function eventbrite_update_7002() {
+  db_change_field('eventbrite_venue', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
+  db_change_field('eventbrite_venue', 'venue_id', 'venue_id',  array('description' => "The Eventbrite venue id.", 'type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
+
+}
+
+/**
+ * Update table `eventbrite_organizer` by adding new `id` field and changing `organizer_id` to 'varchar'.
+ *
+ * drupal_write_record has a bug to save big int or unsigned normal int
+ * @see http://drupal.org/node/1947468
+ */
+function eventbrite_update_7003() {
+  db_drop_primary_key('eventbrite_organizer');
+
+  db_add_field('eventbrite_organizer', 'id', array('type' => 'serial', 'not null' => TRUE, 'description' => 'Primary Key: eventbrite_organizer entity id for internal use.'), array('primary key' => array('id')));
+
+  db_change_field('eventbrite_organizer', 'organizer_id', 'organizer_id', array('description' => "The Eventbrite organizer id.", 'type' => 'varchar', 'size' => '20', 'not null' => TRUE));
+
+  db_add_unique_key('eventbrite_organizer', 'organizer_id', array('organizer_id'));
+}
+

@@ -196,10 +196,9 @@ function eventbrite_entity_info() {
   $return['eventbrite_venue'] = array(
     'label' => t('Eventbrite Venue'),
     'entity class' => 'EventbriteVenue',
-    'controller class' => 'EntityAPIControllerExportable',
+    'controller class' => 'EntityAPIController',
     'base table' => 'eventbrite_venue',
     'fieldable' => TRUE,
-    'exportable' => TRUE,
 //    'view modes' => array(
 //      'full' => array(
 //        'label' => t('Full content'),
@@ -213,8 +212,6 @@ function eventbrite_entity_info() {
     'entity keys' => array(
       'id' => 'venue_id',
       'label' => 'name',
-      'name' => 'venue_id',
-      'status' => 'entity_status',
     ),
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
@@ -231,15 +228,12 @@ function eventbrite_entity_info() {
   $return['eventbrite_organizer'] = array(
     'label' => t('Eventbrite Organizer'),
     'entity class' => 'EventbriteOrganizer',
-    'controller class' => 'EntityAPIControllerExportable',
+    'controller class' => 'EntityAPIController',
     'base table' => 'eventbrite_organizer',
     'fieldable' => TRUE,
-    'exportable' => TRUE,
     'entity keys' => array(
-      'id' => 'organizer_id',
+      'id' => 'id',
       'label' => 'name',
-      'name' => 'organizer_id',
-      'status' => 'entity_status',
     ),
 //    'bundles' => array(
 //      'eventbrite_organizer' => array(
@@ -411,17 +405,53 @@ function eventbrite_get($op, $params = array()) {
 
       foreach ($result->$plural_label as $object) {
         $entry = $object->$label;
+        $id_key = $label . '_id';
 
-        $data[(string) $entry->id] = $entry;
+        $entry->$id_key = (string) $entry->id;
+
+        unset($entry->id);
+
+        $data[$entry->$id_key] = $entry;
       }
 
       $result = $data;
+
+      module_invoke_all('eventbrite_' . $op, $result);
 
       cache_set($cid, $data, 'cache_eventbrite', 60 * variable_get('eventbrite_cache_minimum', 5));
     }
   }
 
   return $result;
+}
+
+/**
+ * Implements hook_eventbrite_user_list_organizers()
+ */
+function eventbrite_eventbrite_user_list_organizers($result) {
+
+  $remote_organizer_ids = $result;
+  $organizer_ids = db_query('SELECT organizer_id, id FROM {eventbrite_organizer}')->fetchAllKeyed();
+
+  $new_organizer_ids = array_diff_key($remote_organizer_ids, $organizer_ids);
+
+  $update_organizer_ids = array_intersect_key($organizer_ids, $remote_organizer_ids);
+
+  foreach($new_organizer_ids as $organizer_id => $entry) {
+    $organizer = eventbrite_organizer_create($entry);
+
+    eventbrite_organizer_save($organizer);
+  }
+
+  foreach($update_organizer_ids as $organizer_id => $entity_id) {
+    $organizer = eventbrite_organizer_load($entity_id);
+    $entry = $result[$organizer_id];
+
+    $organizer->name = $entry->name;
+    $organizer->description = $entry->description;
+
+    eventbrite_organizer_save($organizer);
+  }
 }
 
 /*
@@ -533,12 +563,47 @@ function eventbrite_is_valid_auth() {
 }
 
 
+/**
+ * OG membership loader.
+ *
+ * @param $name
+ *   (optional) The name for this group membership. If no type is given all existing
+ *   types are returned.
+ *
+ * @return OgMembership
+ *   Returns a fully-loaded group membership definition if a type name is passed.
+ *   Else an array containing all types is returned.
+ */
+function eventbrite_organizer_load($id) {
+  return entity_load_single('eventbrite_organizer', $id);
+}
+
+/**
+ * Load multiple OG membership entities based on certain conditions.
+ *
+ * @param $gids
+ *   An array of group membership IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   An array of group entities, indexed by group ID.
+ */
+function eventbrite_organizer_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('eventbrite_organizer', $ids, $conditions, $reset);
+}
 
 /**
  * Create a organizer object.
  */
-function eventbrite_orgnizer_create($values = array()) {
-  return entity_get_controller('eventbrit_orgnizer')->create($values);
+function eventbrite_organizer_create($values = array()) {
+  if (is_object($values)) {
+    $values = (array) $values;
+  }
+
+  return entity_get_controller('eventbrite_organizer')->create($values);
 }
 
 /**
@@ -547,7 +612,7 @@ function eventbrite_orgnizer_create($values = array()) {
  * @param EventbriteOrganizer $organizer
  *   The organizer object.
  */
-function eventbrite_orgnizer_save(EventbriteOrganizer $organizer) {
+function eventbrite_organizer_save(EventbriteOrganizer $organizer) {
   return $organizer->save();
 }
 
@@ -663,14 +728,14 @@ class EventbriteOrganizer extends Entity {
       $result = eventbrite_save($api_callback, $params);
 
       if ($result->process->status === 'OK') {
-        $this->organizer_id = (string) $result->process->id;
+        $this->organizer_id = $result->process->id;
       }
+
+      dpm($result);
     }
 
     $this->status = 1;
 
-    dpm($result);
-    dpm($this);
 //
 //    dpm(eventbrite_get('organizer_get', $params));
 

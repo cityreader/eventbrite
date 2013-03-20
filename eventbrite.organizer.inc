@@ -24,6 +24,9 @@ class EventbriteOrganizerUIController extends EntityDefaultUIController {
    * Overrides EntityDefaultUIController::overviewForm() defaults.
    */
   public function overviewForm($form, &$form_state) {
+    // Synchronize organizer data first if cache is expired
+    eventbrite_get('user_list_organizers');
+
     $form = parent::overviewForm($form, $form_state);
 
     $enabled_organizers = eventbrite_organizer_get_enabled();
@@ -188,16 +191,16 @@ function eventbrite_organizer_form_submit(&$form, &$form_state) {
   $form_state['redirect'] = 'admin/config/services/eventbrite/organizers';
 }
 
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_organizer_load($organizer_id) {
-  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE organizer_id = :organizer_id', array(':organizer_id' => $organizer_id));
-  foreach ($result AS $row) {
-    return $row;
-  }
-}
+///**
+// * @todo Please document this function.
+// * @see http://drupal.org/node/1354
+// */
+//function eventbrite_organizer_load($organizer_id) {
+//  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE organizer_id = :organizer_id', array(':organizer_id' => $organizer_id));
+//  foreach ($result AS $row) {
+//    return $row;
+//  }
+//}
 
 ///*
 // * Default Payment Settings Form Validate
