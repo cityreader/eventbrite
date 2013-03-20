@@ -132,9 +132,6 @@ class EventbriteOrganizerUIController extends EntityDefaultUIController {
 
 /**
  * Generates the Eventbrite organizer editing form.
- *
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
  */
 function eventbrite_organizer_form($form, &$form_state, $entity, $op = 'edit') {
   $form = array();

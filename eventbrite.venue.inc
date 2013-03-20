@@ -56,24 +56,22 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
 }
 
 /**
- * @todo Please document this function.
+ * Generates the Eventbrite venue editing form.
  * @see http://drupal.org/node/1354
  */
-function eventbrite_venue_form($default_values = array()) {
+function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
   $form = array();
 
-  if (isset($default_values['venue_id'])) {
-    $form['venue_id'] = array(
-      '#type' => 'value',
-      '#value' => $default_values['venue_id'],
-    );
-  }
+  $form['venue_id'] = array(
+    '#type' => 'value',
+    '#value' => $entity->venue_id,
+  );
 
   // Name is the only required field
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Venue Name'),
-    '#default_value' => isset($default_values['name']) ? $default_values['name'] : '',
+    '#default_value' => $entity->name,
     '#required' => 1,
     '#weight' => 0,
   );
@@ -83,46 +81,67 @@ function eventbrite_venue_form($default_values = array()) {
   $form['address'] = array(
     '#type' => 'textfield',
     '#title' => t('Address Line 1'),
-    '#default_value' => isset($default_values['address']) ? $default_values['address'] : '',
+    '#default_value' => $entity->address,
     '#weight' => 1,
   );
 
   $form['address2'] = array(
     '#type' => 'textfield',
     '#title' => t('Address Line 2'),
-    '#default_value' => isset($default_values['address2']) ? $default_values['address2'] : '',
+    '#default_value' => $entity->address2,
     '#weight' => 2,
   );
 
   $form['city'] = array(
     '#type' => 'textfield',
     '#title' => t('City'),
-    '#default_value' => isset($default_values['city']) ? $default_values['city'] : '',
+    '#default_value' => $entity->city,
     '#weight' => 3,
   );
 
   $form['region'] = array(
     '#type' => 'textfield',
     '#title' => t('Region'),
-    '#default_value' => isset($default_values['region']) ? $default_values['region'] : '',
+    '#default_value' => $entity->region,
     '#weight' => 4,
   );
 
   $form['postal_code'] = array(
     '#type' => 'textfield',
     '#title' => t('Postal Code'),
-    '#default_value' => isset($default_values['postal_code']) ? $default_values['postal_code'] : '',
+    '#default_value' => $entity->postal_code,
     '#weight' => 5,
   );
 
   $form['country'] = array(
     '#type' => 'select',
     '#title' => t('Country'),
-    '#options' => country_get_list(),
-    '#default_value' => isset($default_values['country']) ? $default_values['country'] : '',
+ //   '#options' => country_get_list(),
+    '#default_value' => $entity->country,
     '#weight' => 6,
   );
 
+  if ($op == 'add') {
+    // Organizer field required for new venues
+    module_load_include('inc', 'eventbrite', 'eventbrite.organizer');
+    $form['organizer'] = array(
+      '#type' => 'select',
+      '#title' => 'Organizer',
+      '#options' => eventbrite_organizer_get_enabled(),
+      '#default_value' => variable_get('eventbrite_organizer_default', ''),
+      '#required' => 1,
+      '#weight' => 9,
+    );
+  }
+
+  $submit_value = ($op == 'add') ? t('Create this venue') : t('Update this venue');
+
+  $form['actions'] = array('#type' => 'actions');
+	$form['actions']['submit'] = array(
+	  '#type' => 'submit',
+	  '#value' => t('Update venue information'),
+	  '#weight' => 10,
+	);
 
   return $form;
 }
