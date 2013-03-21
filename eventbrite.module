@@ -338,7 +338,7 @@ function eventbrite_flush_caches() {
 /**
  * Get $eb_client instance
  */
-function eventbrite_get_instance($app_key = '', $user_key = '') {
+function eventbrite_get_object($app_key = '', $user_key = '') {
   static $eb_client;
 
   if (empty($eb_client) && eventbrite_is_valid_auth()) {
@@ -365,7 +365,7 @@ function eventbrite_get_instance($app_key = '', $user_key = '') {
 function eventbrite_get($op, $params = array()) {
   $result = array();
 
-  $eb_client = eventbrite_get_instance();
+  $eb_client = eventbrite_get_object();
 
   if (!$eb_client) {
     return FALSE;
@@ -475,7 +475,7 @@ function eventbrite_eventbrite_user_list_organizers($result) {
 function eventbrite_save($op, $params) {
   $result = array();
 
-  $eb_client = eventbrite_get_instance();
+  $eb_client = eventbrite_get_object();
 
   if (!$eb_client) {
     return FALSE;
