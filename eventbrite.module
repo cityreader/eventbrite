@@ -209,6 +209,15 @@ function eventbrite_entity_info() {
 //        'custom settings' => TRUE,
 //      ),
 //    ),
+    'bundles' => array(
+      'eventbrite_venue' => array(
+        'label' => t('Eventbrite Venue'),
+        'admin' => array(
+          'path' => 'admin/config/services/eventbrite/venues2',
+          'access arguments' => array('administer eventbrite venues'),
+        ),
+      ),
+    ),
     'entity keys' => array(
       'id' => 'venue_id',
       'label' => 'name',
@@ -647,8 +656,14 @@ class EventbriteVenue extends Entity {
 
   public $venue_id;
   public $organizer_id;
-  public $status;
   public $name;
+  public $address;
+  public $address2;
+  public $city;
+  public $region;
+  public $postal_code;
+  public $country;
+  public $status;
 
   public function defaultLabel() {
     return $this->name;

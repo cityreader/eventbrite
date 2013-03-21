@@ -60,6 +60,8 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
  * @see http://drupal.org/node/1354
  */
 function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+
   $form = array();
 
   $form['venue_id'] = array(
@@ -116,10 +118,12 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
   $form['country'] = array(
     '#type' => 'select',
     '#title' => t('Country'),
- //   '#options' => country_get_list(),
+    '#options' => country_get_list(),
     '#default_value' => $entity->country,
     '#weight' => 6,
   );
+
+  field_attach_form('eventbrite_venue', $entity, $form, $form_state);
 
   if ($op == 'add') {
     // Organizer field required for new venues
