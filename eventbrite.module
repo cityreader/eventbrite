@@ -522,6 +522,13 @@ function eventbrite_save($op, $params) {
   return $result;
 }
 
+/**
+ * Synchronize local data with remote Eventbrite data
+ */
+function eventbrite_sync($op) {
+  eventbrite_get($op);
+}
+
 /*
  * This function translates offset into the formatting that Eventbrite API is expecting
  */

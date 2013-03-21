@@ -25,7 +25,7 @@ class EventbriteOrganizerUIController extends EntityDefaultUIController {
    */
   public function overviewForm($form, &$form_state) {
     // Synchronize organizer data first if cache is expired
-    eventbrite_get('user_list_organizers');
+    eventbrite_sync('user_list_organizers');
 
     $form = parent::overviewForm($form, $form_state);
 
