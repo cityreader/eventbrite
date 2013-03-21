@@ -326,6 +326,13 @@ function eventbrite_theme() {
   );
 }
 
+/**
+ * Implements hook_flush_caches().
+ */
+function eventbrite_flush_caches() {
+  return array('cache_eventbrite');
+}
+
 /* API FUNCTIONS EXPOSED TO OTHER MODULES */
 
 /**
@@ -386,7 +393,9 @@ function eventbrite_get($op, $params = array()) {
   $user_key = variable_get('eventbrite_user_key', '');
   $cid = $op . ':' . $user_key;
 
-  if ($cache = cache_get($cid, 'cache_eventbrite')) {
+  $cache = cache_get($cid, 'cache_eventbrite');
+
+  if ($cache && REQUEST_TIME <= $cache->expire) {
     $result = $cache->data;
   }
   else {
@@ -418,7 +427,9 @@ function eventbrite_get($op, $params = array()) {
 
       module_invoke_all('eventbrite_' . $op, $result);
 
-      cache_set($cid, $data, 'cache_eventbrite', 60 * variable_get('eventbrite_cache_minimum', 5));
+      $expire = 60 * variable_get('eventbrite_cache_minimum', 5);
+
+      cache_set($cid, $data, 'cache_eventbrite', REQUEST_TIME + $expire);
     }
   }
 
