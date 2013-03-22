@@ -315,10 +315,10 @@ function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
  */
 function eventbrite_theme() {
   return array(
-    'eventbrite_venue_list_form' => array(
-      'render element' => 'form',
-      'file' => 'eventbrite.venue.inc',
-    ),
+//    'eventbrite_venue_list_form' => array(
+//      'render element' => 'form',
+//      'file' => 'eventbrite.venue.inc',
+//    ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
 //      'file' => 'eventbrite.organizer.inc',
@@ -354,6 +354,18 @@ function eventbrite_get_object($app_key = '', $user_key = '') {
   }
 
   return $eb_client;
+}
+
+function eventbrite_debug_message($message) {
+  if (variable_get('eventbrite_debug', 0)) {
+    if (module_exists('devel')) {
+      dpm($message);
+    }
+    else {
+      $message = '<pre>' . print_r($message, TRUE) . '</pre>';
+      drupal_set_message($message);
+    }
+  }
 }
 
 /**
@@ -407,6 +419,9 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
   else {
     try{
       $result = $eb_client->$op($params);
+
+      eventbrite_debug_message($result);
+
     } catch (Exception $e) {
       drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
       watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
@@ -471,6 +486,42 @@ function eventbrite_eventbrite_user_list_organizers($result) {
   }
 }
 
+/**
+ * Implements hook_eventbrite_user_list_venues()
+ */
+function eventbrite_eventbrite_user_list_venues($result) {
+
+  $remote_venue_ids = $result;
+  $venue_ids = db_query('SELECT venue_id FROM {eventbrite_venue}')->fetchCol();
+
+  $venue_ids = empty($venue_ids) ? array() : array_flip($venue_ids);
+
+  $new_venue_ids = array_diff_key($remote_venue_ids, $venue_ids);
+
+  $update_venue_ids = array_keys(array_intersect_key($venue_ids, $remote_venue_ids));
+
+  foreach($new_venue_ids as $venue_ids => $entry) {
+    $venue = eventbrite_venue_create($entry);
+
+    eventbrite_venue_save($venue);
+  }
+
+  foreach($update_venue_ids as $venue_ids) {
+    $venue = eventbrite_venue_load($venue_ids);
+    $entry = $result[$venue_ids];
+
+    $venue->name = $entry->name;
+    $venue->address = $entry->address;
+    $venue->address_2 = $entry->address_2;
+    $venue->city = $entry->city;
+    $venue->region = $entry->region;
+    $venue->postal_code = $entry->postal_code;
+    $venue->country_code = $entry->country_code;
+
+    eventbrite_venue_save($venue);
+  }
+}
+
 /*
  * Allows a save-oriented operation to called via the Eventbrite API
  */
@@ -514,6 +565,8 @@ function eventbrite_save($op, $params) {
 
   try{
     $result = $eb_client->$op($params);
+
+    eventbrite_debug_message($result);
   } catch (Exception $e) {
     drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
     watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
@@ -651,7 +704,7 @@ class EventbriteVenue extends Entity {
   public $organizer_id;
   public $name;
   public $address;
-  public $address2;
+  public $address_2;
   public $city;
   public $region;
   public $postal_code;
@@ -666,33 +719,34 @@ class EventbriteVenue extends Entity {
    * Overrides Entity::save().
    */
   public function save() {
-    // Care about setting created and changed values. But do not automatically
-    // set a created values for already existing profiles.
-//    if (empty($this->created) && (!empty($this->is_new) || !$this->pid)) {
-//      $this->created = REQUEST_TIME;
-//    }
-//    $this->changed = REQUEST_TIME;
+    // Only save data remotely to Eventbrite in a form submission 
+    if (isset($this->form_id)) {
 
-    $params = array(
-      'organizer_id' => $this->organizer_id,
-      'name' => $this->name,
-      'address' => $this->address,
-      'address_2' => $this->address2,
-      'city' => $this->city,
-      'region' => $this->region,
-      'postal_code' => $this->postal_code,
-      'country_code' => $this->country_code,
-    );
+      $params = array(
+        'name' => $this->name,
+        'address' => $this->address,
+        'address_2' => $this->address_2,
+        'city' => $this->city,
+        'region' => $this->region,
+        'postal_code' => $this->postal_code,
+        'country_code' => $this->country_code,
+      );
 
-    if ($this->venue_id) {
-      $params['id'] = $this->venue_id;
-    }
+      if ($this->venue_id) {
+        $params['id'] = $this->venue_id;
+      }
 
-    $api_callback = !empty($this->is_new) ? 'venue_new' : 'venue_update';
+      if (!empty($this->is_new)) {
+        $params['organizer_id'] = $this->organizer_id;
+      }
 
-    $result = eventbrite_save($api_callback, $params);
+      $api_callback = !empty($this->is_new) && $this->venue_id ? 'venue_new' : 'venue_update';
 
-    if ($result && $result->process->status === 'OK') {
+      $result = eventbrite_save($api_callback, $params);
+
+      if (!$result || $result->process->status !== 'OK') {
+        return;
+      }
 
       if (!empty($this->is_new)) {
         drupal_set_message(t('This venue has been created on the Eventbrite server.'));
@@ -702,9 +756,11 @@ class EventbriteVenue extends Entity {
       }
 
       $this->venue_id = $result->process->id;
+
+      dpm($result);
     }
 
-    dpm($result);
+
     dpm($this);
 //
 //    dpm(eventbrite_get('organizer_get', $params));
@@ -789,13 +845,6 @@ class EventbriteOrganizer extends Entity {
    * Overrides Entity::save().
    */
   public function save() {
-    // Care about setting created and changed values. But do not automatically
-    // set a created values for already existing profiles.
-//    if (empty($this->created) && (!empty($this->is_new) || !$this->pid)) {
-//      $this->created = REQUEST_TIME;
-//    }
-//    $this->changed = REQUEST_TIME;
-
     // Only save data remotely to Eventbrite in a form submission 
     if (isset($this->form_id)) {
       $params = array(
@@ -807,13 +856,15 @@ class EventbriteOrganizer extends Entity {
         $params['id'] = $this->organizer_id;
       }
 
-      $api_callback = !empty($this->is_new) ? 'organizer_new' : 'organizer_update';
+      $api_callback = !empty($this->is_new) && $this->organizer_id ? 'organizer_new' : 'organizer_update';
 
       $result = eventbrite_save($api_callback, $params);
 
-      if ($result && $result->process->status === 'OK') {
-        $this->organizer_id = $result->process->id;
+      if (!$result || $result->process->status !== 'OK') {
+        return;
       }
+
+      $this->organizer_id = $result->process->id;
 
       dpm($result);
     }

@@ -21,6 +21,17 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
   }
 
   /**
+   * Overrides EntityDefaultUIController::overviewForm() defaults.
+   */
+  public function overviewForm($form, &$form_state) {
+    // Synchronize organizer data first if cache is expired
+    eventbrite_sync('user_list_venues');
+
+    $form = parent::overviewForm($form, $form_state);
+    return $form;
+  }
+
+  /**
    * Overrides EntityDefaultUIController::overviewTableHeaders().
    */
   protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
@@ -28,11 +39,10 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
 
     // Change table column name from "Label" to "Organizer Name"
     $header[0] = t('Venue Name');
-//    $extra = array(
-//      t('Description'),
-//      t('URL'),
-//    );
-//    array_splice($header, 1, 0, $extra);
+    $extra = array(
+      t('Address'),
+    );
+    array_splice($header, 1, 0, $extra);
     return $header;
   }
 
@@ -42,14 +52,26 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
     $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
 
-//    $extra[] = array(
-//      'data'=> $entity->description,
-//    );
-//    $url = EVENTBRITE_URL_ORG . '/' . $entity->organizer_id;
-//    $extra[] = array(
-//      'data'=> l($url, $url, array('attributes' => array('target' => '_blank'))),
-//    );
-//    array_splice($row, 1, 0, $extra);
+    $address = $entity->address;
+    if (!empty($entity->address_2)) {
+      $address .= ', '. $entity->address_2;
+    }
+    if (!empty($entity->city)) {
+      $address .= ', '. $entity->city;
+    }
+    if (!empty($entity->region)) {
+      $address .= ', '. $entity->region;
+    }
+    if (!empty($entity->country)) {
+      $address .= ', '. $entity->country;
+    }
+    if (!empty($entity->postal_code)) {
+      $address .= ', '. $entity->postal_code;
+    }
+    $extra[] = array(
+      'data'=> $address,
+    );
+    array_splice($row, 1, 0, $extra);
     
     return $row;
   }
@@ -89,10 +111,10 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
     '#weight' => 1,
   );
 
-  $form['address2'] = array(
+  $form['address_2'] = array(
     '#type' => 'textfield',
     '#title' => t('Address Line 2'),
-    '#default_value' => $entity->address2,
+    '#default_value' => $entity->address_2,
     '#weight' => 2,
   );
 
@@ -181,7 +203,7 @@ function eventbrite_venue_form_submit($form, &$form_state) {
   $eventbrite_venue = entity_ui_form_submit_build_entity($form, $form_state);
 
   $eventbrite_venue->save();
-  $form_state['redirect'] = 'admin/config/services/eventbrite/venue';
+  $form_state['redirect'] = 'admin/config/services/eventbrite/venues';
   return;
 }
 
@@ -200,51 +222,6 @@ function eventbrite_venue_options($required = FALSE) {
   }
   return $venue_options;
 }
-
-/*
- * Venue Edit Form
- */
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue($form, $form_state, $venue_id = NULL) {
-  $form = array();
-
-  if (isset($venue_id) && $venue = eventbrite_venue_load($venue_id)) {
-    $form = eventbrite_venue_form($venue);
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Update venue information'),
-      '#weight' => 10,
-    );
-  }
-  else {
-    $form = eventbrite_venue_form();
-
-    // Organizer field required for new venues
-    module_load_include('inc', 'eventbrite', 'eventbrite.organizer');
-    $form['organizer'] = array(
-      '#type' => 'select',
-      '#title' => 'Organizer',
-      '#options' => eventbrite_organizer_get_enabled(),
-      '#default_value' => variable_get('eventbrite_organizer_default', ''),
-      '#required' => 1,
-      '#weight' => 9,
-    );
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Create this venue'),
-      '#weight' => 10,
-    );
-  }
-  return $form;
-}
-
-
-
 
 /*
  function eventbrite_venue_list() {
@@ -352,30 +329,30 @@ function eventbrite_venue_save_local($venue) {
 }
 
 
-/*
- * This function pulls venue from the form results and builds a venue object for base Eventbrite module
- */
-function _eventbrite_populate_venue_from_form($item) {
-  // TODO: All this function does is converts array to object
-  $venue = new stdClass();
-
-  if (!empty($item['venue_id'])) {
-    $venue->venue_id = $item['venue_id'];
-  }
-  $venue->name = $item['name'];
-  if (!empty($item['organizer'])) {
-    $venue->organizer = $item['organizer'];
-  }
-  $venue->address = $item['address'];
-  $venue->address2 = $item['address2'];
-  $venue->city = $item['city'];
-  $venue->region = $item['region'];
-  $venue->postal_code = $item['postal_code'];
-  $venue->country = $item['country'];
-  $venue->country_code = $item['country'];
-
-  return $venue;
-}
+///*
+// * This function pulls venue from the form results and builds a venue object for base Eventbrite module
+// */
+//function _eventbrite_populate_venue_from_form($item) {
+//  // TODO: All this function does is converts array to object
+//  $venue = new stdClass();
+//
+//  if (!empty($item['venue_id'])) {
+//    $venue->venue_id = $item['venue_id'];
+//  }
+//  $venue->name = $item['name'];
+//  if (!empty($item['organizer'])) {
+//    $venue->organizer = $item['organizer'];
+//  }
+//  $venue->address = $item['address'];
+//  $venue->address2 = $item['address2'];
+//  $venue->city = $item['city'];
+//  $venue->region = $item['region'];
+//  $venue->postal_code = $item['postal_code'];
+//  $venue->country = $item['country'];
+//  $venue->country_code = $item['country'];
+//
+//  return $venue;
+//}
 
 /**
  * @todo Please document this function.
@@ -394,15 +371,15 @@ function eventbrite_venue_get_enabled() {
   }
 
   $enabled = array();
-  $result = db_query('SELECT venue_id, name, address, address2, city, region FROM {eventbrite_venue} WHERE status = :status ORDER BY name', array(':status' => 1));
+  $result = db_query('SELECT venue_id, name, address, address_2, city, region FROM {eventbrite_venue} WHERE status = :status ORDER BY name', array(':status' => 1));
   foreach ($result AS $row) {
     if (in_array($row->venue_id, $filter_venues)) {
       $enabled[$row->venue_id] = $row->name;
       if (!empty($row->address)) {
         $enabled[$row->venue_id] .= ', ' . $row->address;
       }
-      if (!empty($row->address2)) {
-        $enabled[$row->venue_id] .= ', ' . $row->address2;
+      if (!empty($row->address_2)) {
+        $enabled[$row->venue_id] .= ', ' . $row->address_2;
       }
       if (!empty($row->city)) {
         $enabled[$row->venue_id] .= ', ' . $row->city;
@@ -430,97 +407,97 @@ function eventbrite_venue_get_enabled() {
  }
  */
 
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue_list_form($form, $form_state, $user_key = '') {
-  // Set default user key to site wide Eventbrite user key
-  if (empty($user_key)) {
-    $user_key = variable_get('eventbrite_user_key', '');
-    if (empty($user_key)) {
-      return t('No Eventbrite user key has been configured for this account.');
-    }
-  }
-
-  $form = array();
-
-  // This refreshes organizers for the site-wide account
-  if ($venues = eventbrite_get('user_list_venues')) {
-    $countries = country_get_list();
-    $header = array(
-      array(),
-      array(
-        'data' => t('Venue Name'),
-        'field' => 'name',
-      ),
-      array(
-        'data' => t('Address'),
-        'field' => 'address',
-      ),
-      array(
-        'data' => t('City'),
-        'field' => 'city',
-      ),
-      array(
-        'data' => t('Region / Postal Code'),
-        'field' => 'region',
-      ),
-      array(
-        'data' => t('Country'),
-        'field' => 'country',
-      ),
-    );
-
-    $results = db_select('eventbrite_venue', 'ev')
-                ->condition('user_key', $user_key, '=')
-                ->fields('ev', array('venue_id', 'name', 'address', 'address2', 'city', 'region', 'postal_code', 'country'))
-                ->extend('TableSort')->orderByHeader($header)
-                ->extend('PagerDefault')->limit(50)
-                ->execute();
-
-    $status = array(t('blocked'), t('active'));
-    $roles = user_roles(TRUE);
-    $venue_array = array();
-    foreach ($results AS $venue) {
-      $venue_array[$venue->venue_id] = '';
-
-      $form['name'][$venue->venue_id] = array(
-        '#value' => l(
-          $venue->name,
-          'admin/config/eventbrite/venues/' . $venue->venue_id,
-          array('query' => $destination)
-        ),
-      );
-      $form['address'][$venue->venue_id] = array('#value' => $venue->address);
-      if (!empty($venue->address2)) {
-        $form['address'][$venue->venue_id]['#value'] .= '<br/>' . $venue->address2;
-      }
-      $form['city'][$venue->venue_id] = array('#value' => $venue->city);
-      $form['region'][$venue->venue_id] = array('#value' => $venue->region);
-      if (!empty($venue->postal_code)) {
-        $form['region'][$venue->venue_id]['#value'] .= '<br/>' . $venue->postal_code;
-      }
-      $form['country'][$venue->venue_id] = array('#value' => $countries[$venue->country]);
-    }
-
-    $enabled_venues = eventbrite_venue_get_enabled();
-    $form['enabled_venues'] = array(
-      '#type' => 'checkboxes',
-      '#options' => $venue_array,
-      '#default_value' => array_keys($enabled_venues),
-    );
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save enabled venues'),
-      '#weight' => 100,
-    );
-    $form['pager'] = array('#value' => theme('pager', array('tags' => NULL, 'element' => 0)));
-  }
-
-  return $form;
-}
+///**
+// * @todo Please document this function.
+// * @see http://drupal.org/node/1354
+// */
+//function eventbrite_venue_list_form($form, $form_state, $user_key = '') {
+//  // Set default user key to site wide Eventbrite user key
+//  if (empty($user_key)) {
+//    $user_key = variable_get('eventbrite_user_key', '');
+//    if (empty($user_key)) {
+//      return t('No Eventbrite user key has been configured for this account.');
+//    }
+//  }
+//
+//  $form = array();
+//
+//  // This refreshes organizers for the site-wide account
+//  if ($venues = eventbrite_get('user_list_venues')) {
+//    $countries = country_get_list();
+//    $header = array(
+//      array(),
+//      array(
+//        'data' => t('Venue Name'),
+//        'field' => 'name',
+//      ),
+//      array(
+//        'data' => t('Address'),
+//        'field' => 'address',
+//      ),
+//      array(
+//        'data' => t('City'),
+//        'field' => 'city',
+//      ),
+//      array(
+//        'data' => t('Region / Postal Code'),
+//        'field' => 'region',
+//      ),
+//      array(
+//        'data' => t('Country'),
+//        'field' => 'country',
+//      ),
+//    );
+//
+//    $results = db_select('eventbrite_venue', 'ev')
+//                ->condition('user_key', $user_key, '=')
+//                ->fields('ev', array('venue_id', 'name', 'address', 'address2', 'city', 'region', 'postal_code', 'country'))
+//                ->extend('TableSort')->orderByHeader($header)
+//                ->extend('PagerDefault')->limit(50)
+//                ->execute();
+//
+//    $status = array(t('blocked'), t('active'));
+//    $roles = user_roles(TRUE);
+//    $venue_array = array();
+//    foreach ($results AS $venue) {
+//      $venue_array[$venue->venue_id] = '';
+//
+//      $form['name'][$venue->venue_id] = array(
+//        '#value' => l(
+//          $venue->name,
+//          'admin/config/eventbrite/venues/' . $venue->venue_id,
+//          array('query' => $destination)
+//        ),
+//      );
+//      $form['address'][$venue->venue_id] = array('#value' => $venue->address);
+//      if (!empty($venue->address2)) {
+//        $form['address'][$venue->venue_id]['#value'] .= '<br/>' . $venue->address2;
+//      }
+//      $form['city'][$venue->venue_id] = array('#value' => $venue->city);
+//      $form['region'][$venue->venue_id] = array('#value' => $venue->region);
+//      if (!empty($venue->postal_code)) {
+//        $form['region'][$venue->venue_id]['#value'] .= '<br/>' . $venue->postal_code;
+//      }
+//      $form['country'][$venue->venue_id] = array('#value' => $countries[$venue->country]);
+//    }
+//
+//    $enabled_venues = eventbrite_venue_get_enabled();
+//    $form['enabled_venues'] = array(
+//      '#type' => 'checkboxes',
+//      '#options' => $venue_array,
+//      '#default_value' => array_keys($enabled_venues),
+//    );
+//
+//    $form['submit'] = array(
+//      '#type' => 'submit',
+//      '#value' => t('Save enabled venues'),
+//      '#weight' => 100,
+//    );
+//    $form['pager'] = array('#value' => theme('pager', array('tags' => NULL, 'element' => 0)));
+//  }
+//
+//  return $form;
+//}
 
 /**
  * @todo Please document this function.
@@ -553,65 +530,65 @@ function eventbrite_venue_list_form_submit($form, &$form_state) {
 }
 
 
-/**
- * Theme venue list form.
- *
- * @ingroup themeable
- */
-function theme_eventbrite_venue_list_form($variables) {
-  $form = $variables['form'];
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
-  $header = array(
-    theme('table_select_header_cell'),
-    array(
-      'data' => t('Venue Name'),
-      'field' => 'ev.name',
-    ),
-    array(
-      'data' => t('Address'),
-      'field' => 'ev.address',
-    ),
-    array(
-      'data' => t('City'),
-      'field' => 'ev.city',
-    ),
-    array(
-      'data' => t('Region / Postal Code'),
-      'field' => 'ev.region',
-    ),
-    array(
-      'data' => t('Country'),
-      'field' => 'ev.country',
-    ),
-  );
-
-  $output = drupal_render($form['options']);
-  if (isset($form['name']) && is_array($form['name'])) {
-    foreach (element_children($form['name']) as $key) {
-      $rows[] = array(
-        drupal_render($form['enabled_venues'][$key]),
-        drupal_render($form['name'][$key]),
-        drupal_render($form['address'][$key]),
-        drupal_render($form['city'][$key]),
-        drupal_render($form['region'][$key]),
-        drupal_render($form['country'][$key]),
-      );
-    }
-  }
-  else {
-    $rows[] = array(array(
-        'data' => t('No venues were found in this Eventbrite account.'),
-        'colspan' => '7',
-      ));
-  }
-
-  $output .= '<div class="form-item"><label>' . t('Enabled Venues:') . '</label></div>';
-  $output .= theme('table', array('header' => $header, 'rows' => $rows));
-  if ($form['pager']['#value']) {
-    $output .= drupal_render($form['pager']);
-  }
-
-  $output .= drupal_render_children($form);
-
-  return $output;
-}
+///**
+// * Theme venue list form.
+// *
+// * @ingroup themeable
+// */
+//function theme_eventbrite_venue_list_form($variables) {
+//  $form = $variables['form'];
+//  // TODO Please change this theme call to use an associative array for the $variables parameter.
+//  $header = array(
+//    theme('table_select_header_cell'),
+//    array(
+//      'data' => t('Venue Name'),
+//      'field' => 'ev.name',
+//    ),
+//    array(
+//      'data' => t('Address'),
+//      'field' => 'ev.address',
+//    ),
+//    array(
+//      'data' => t('City'),
+//      'field' => 'ev.city',
+//    ),
+//    array(
+//      'data' => t('Region / Postal Code'),
+//      'field' => 'ev.region',
+//    ),
+//    array(
+//      'data' => t('Country'),
+//      'field' => 'ev.country',
+//    ),
+//  );
+//
+//  $output = drupal_render($form['options']);
+//  if (isset($form['name']) && is_array($form['name'])) {
+//    foreach (element_children($form['name']) as $key) {
+//      $rows[] = array(
+//        drupal_render($form['enabled_venues'][$key]),
+//        drupal_render($form['name'][$key]),
+//        drupal_render($form['address'][$key]),
+//        drupal_render($form['city'][$key]),
+//        drupal_render($form['region'][$key]),
+//        drupal_render($form['country'][$key]),
+//      );
+//    }
+//  }
+//  else {
+//    $rows[] = array(array(
+//        'data' => t('No venues were found in this Eventbrite account.'),
+//        'colspan' => '7',
+//      ));
+//  }
+//
+//  $output .= '<div class="form-item"><label>' . t('Enabled Venues:') . '</label></div>';
+//  $output .= theme('table', array('header' => $header, 'rows' => $rows));
+//  if ($form['pager']['#value']) {
+//    $output .= drupal_render($form['pager']);
+//  }
+//
+//  $output .= drupal_render_children($form);
+//
+//  return $output;
+//}
