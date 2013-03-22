@@ -31,20 +31,22 @@ class EventbriteOrganizerUIController extends EntityDefaultUIController {
 
     $enabled_organizers = eventbrite_organizer_get_enabled();
 
-    $form['default_organizer'] = array(
-      '#type' => 'select',
-      '#title' => t('Default Organizer'),
-      '#default_value' => variable_get('eventbrite_organizer_default', ''),
-      '#options' => $enabled_organizers,
-      '#required' => TRUE,
-    );
+    if (count($enabled_organizers) > 0) {
+      $form['default_organizer'] = array(
+        '#type' => 'select',
+        '#title' => t('Default Organizer'),
+        '#default_value' => variable_get('eventbrite_organizer_default', ''),
+        '#options' => $enabled_organizers,
+        '#required' => TRUE,
+      );
 
-    $form['actions'] = array('#type' => 'actions');
-    $form['actions']['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save configuration'),
-      '#weight' => 100,
-    );
+      $form['actions'] = array('#type' => 'actions');
+      $form['actions']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Save configuration'),
+        '#weight' => 100,
+      );
+    }
 
     return $form;
   }
