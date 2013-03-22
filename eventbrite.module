@@ -149,17 +149,17 @@ function eventbrite_menu() {
   //   'weight' => 3,
   // );
 
-  // $items['admin/config/services/eventbrite/payment-settings'] = array(
-  //   'title' => 'Payment Settings',
-  //   'description' => 'Configure default payment settings',
-  //   'page callback' => 'drupal_get_form',
-  //   'page arguments' => array('eventbrite_payment_default_settings'),
-  //   'access callback' => 'user_access',
-  //   'access arguments' => array('administer site configuration'),
-  //   'file' => 'eventbrite.payment.inc',
-  //   'type' => MENU_LOCAL_TASK,
-  //   'weight' => 5,
-  // );
+   $items['admin/config/services/eventbrite/payment-settings'] = array(
+     'title' => 'Payment Settings',
+     'description' => 'Configure default payment settings',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('eventbrite_payment_settings_form', TRUE),
+     'access callback' => 'user_access',
+     'access arguments' => array('administer site configuration'),
+     'file' => 'eventbrite.payment.inc',
+     'type' => MENU_LOCAL_TASK,
+     'weight' => 5,
+   );
 
   return $items;
 }
