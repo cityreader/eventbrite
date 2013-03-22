@@ -57,7 +57,9 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
 
 /**
  * Generates the Eventbrite venue editing form.
- * @see http://drupal.org/node/1354
+ *
+ * @see eventbrite_venue_form_validate()
+ * @see eventbrite_venue_form_submit()
  */
 function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
@@ -115,20 +117,20 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
     '#weight' => 5,
   );
 
-  $form['country'] = array(
+  $form['country_code'] = array(
     '#type' => 'select',
     '#title' => t('Country'),
     '#options' => country_get_list(),
-    '#default_value' => $entity->country,
+    '#default_value' => $entity->country_code ? $entity->country_code : variable_get('eventbrite_country_code', 'US'),
     '#weight' => 6,
   );
 
-  field_attach_form('eventbrite_venue', $entity, $form, $form_state);
+//  field_attach_form('eventbrite_venue', $entity, $form, $form_state);
 
   if ($op == 'add') {
     // Organizer field required for new venues
     module_load_include('inc', 'eventbrite', 'eventbrite.organizer');
-    $form['organizer'] = array(
+    $form['organizer_id'] = array(
       '#type' => 'select',
       '#title' => 'Organizer',
       '#options' => eventbrite_organizer_get_enabled(),
@@ -143,23 +145,21 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
   $form['actions'] = array('#type' => 'actions');
 	$form['actions']['submit'] = array(
 	  '#type' => 'submit',
-	  '#value' => t('Update venue information'),
+	  '#value' => $submit_value,
 	  '#weight' => 10,
 	);
 
   return $form;
 }
 
-// Temporary function
-// TODO $form_errors wil have to turn into form_set_errors()
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Form API submit callback for the Eventbrite organizer edit form.
+ *
+ * @see eventbrite_venue_form()
+ * @see eventbrite_venue_form_submit()
  */
-function eventbrite_venue_form_validate($values) {
-  $form_errors = array();
-
-  // TODO: Check that there isn't already a venue with this name for this user key
+function eventbrite_venue_form_validate($form, &$form_state) {
+  // @todo Check that there isn't already a venue with this name for this user key
   /*
    if ($values['accept_paypal']) {
    // If using PayPay check that paypal email is entered
@@ -169,19 +169,36 @@ function eventbrite_venue_form_validate($values) {
    }
    }
    */
+}
 
-  return $form_errors;
+/**
+ * Form API submit callback for the Eventbrite venue edit form.
+ *
+ * @see eventbrite_venue_form()
+ * @see eventbrite_venue_form_validate()
+ */
+function eventbrite_venue_form_submit($form, &$form_state) {
+  $eventbrite_venue = entity_ui_form_submit_build_entity($form, $form_state);
+
+  $eventbrite_venue->save();
+  $form_state['redirect'] = 'admin/config/services/eventbrite/venue';
+  return;
 }
 
 /**
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */
-function eventbrite_venue_load($venue_id) {
-  $result = db_query('SELECT * FROM {eventbrite_venue} WHERE venue_id = :venue_id', array(':venue_id' => $venue_id));
-  foreach ($result AS $row) {
-    return $row;
+function eventbrite_venue_options($required = FALSE) {
+  $result = db_query('SELECT * FROM {eventbrite_venue}');
+  $venue_options = array();
+  if (!$required) {
+    $venue_options[''] = '--';
   }
+  foreach ($result AS $row) {
+    $venue_options[$row->venue_id] = $row->name;
+  }
+  return $venue_options;
 }
 
 /*
@@ -226,55 +243,8 @@ function eventbrite_venue($form, $form_state, $venue_id = NULL) {
   return $form;
 }
 
-/*
- * Venue Edit Form Validate
- */
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue_validate($form, &$form_state) {
-  $form_values = $form_state['values'];
 
-  $form_errors = eventbrite_venue_form_validate($form_values);
 
-//  TODO: Check for form errors
-
-  return;
-}
-
-/*
- * Venue Edit Form Submit
- */
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue_submit($form, &$form_state) {
-  $venue = _eventbrite_populate_venue_from_form($form_state['values']);
-  if (eventbrite_venue_save($venue)) {
-    // Venue successfully saved
-    return;
-  }
-  // TODO: Build this error message out more & set a form error if still possible
-  drupal_set_message('The venue could not be saved', 'error');
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue_options($required = FALSE) {
-  $result = db_query('SELECT * FROM {eventbrite_venue}');
-  $venue_options = array();
-  if (!$required) {
-    $venue_options[''] = '--';
-  }
-  foreach ($result AS $row) {
-    $venue_options[$row->venue_id] = $row->name;
-  }
-  return $venue_options;
-}
 
 /*
  function eventbrite_venue_list() {
@@ -317,41 +287,41 @@ function eventbrite_venue_options($required = FALSE) {
  return t('There are currently no venues conifigured for this user account.');
  }
  */
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function eventbrite_venue_save($venue) {
-//  Check to see if this venue already exists on Eventbrite server by venue_id
-  if (isset($venue->venue_id) && !empty($venue->venue_id)) {
-    // This venue already has a venue_id, so venue_update is the API call
-    if ($saved_result = eventbrite_save('venue_update', $venue)) {
-      drupal_set_message(t('This venue has been updated on the Eventbrite server.'));
-    }
-    else {
-      drupal_set_message(t('This venue could not be updated on the Eventbrite server'), 'error');
-      return;
-    }
-  }
-  else {
-    // This venue does not exist, so venue_new is the API call
-    if ($saved_result = eventbrite_save('venue_new', $venue)) {
-      drupal_set_message(t('This venue has been created on the Eventbrite server.'));
-      $venue->venue_id = $saved_result;
-
-      // Call a hook so that submodules know that a new venue got saved
-      module_invoke_all('eventbrite_venue_new', $venue);
-    }
-    else {
-      drupal_set_message(t('This venue could not be created on the Eventbrite server'), 'error');
-      return;
-    }
-  }
-  if ($saved_result) {
-    eventbrite_venue_save_local($venue);
-    return $saved_result;
-  }
-}
+///**
+// * @todo Please document this function.
+// * @see http://drupal.org/node/1354
+// */
+//function eventbrite_venue_save($venue) {
+////  Check to see if this venue already exists on Eventbrite server by venue_id
+//  if (isset($venue->venue_id) && !empty($venue->venue_id)) {
+//    // This venue already has a venue_id, so venue_update is the API call
+//    if ($saved_result = eventbrite_save('venue_update', $venue)) {
+//      drupal_set_message(t('This venue has been updated on the Eventbrite server.'));
+//    }
+//    else {
+//      drupal_set_message(t('This venue could not be updated on the Eventbrite server'), 'error');
+//      return;
+//    }
+//  }
+//  else {
+//    // This venue does not exist, so venue_new is the API call
+//    if ($saved_result = eventbrite_save('venue_new', $venue)) {
+//      drupal_set_message(t('This venue has been created on the Eventbrite server.'));
+//      $venue->venue_id = $saved_result;
+//
+//      // Call a hook so that submodules know that a new venue got saved
+//      module_invoke_all('eventbrite_venue_new', $venue);
+//    }
+//    else {
+//      drupal_set_message(t('This venue could not be created on the Eventbrite server'), 'error');
+//      return;
+//    }
+//  }
+//  if ($saved_result) {
+//    eventbrite_venue_save_local($venue);
+//    return $saved_result;
+//  }
+//}
 
 /**
  * @todo Please document this function.

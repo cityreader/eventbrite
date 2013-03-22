@@ -105,17 +105,17 @@ function eventbrite_menu() {
 
   // // VENUES
 
-   $items['admin/config/services/eventbrite/venues'] = array(
-     'title' => 'Venues',
-     'description' => 'List Eventbrite venues',
-     'page callback' => 'drupal_get_form',
-     'page arguments' => array('eventbrite_venue_list_form'),
-     'access callback' => 'user_access',
-     'access arguments' => array('administer eventbrite settings'),
-     'file' => 'eventbrite.venue.inc',
-     'type' => MENU_LOCAL_TASK,
-     'weight' => 2,
-   );
+//   $items['admin/config/services/eventbrite/venues'] = array(
+//     'title' => 'Venues',
+//     'description' => 'List Eventbrite venues',
+//     'page callback' => 'drupal_get_form',
+//     'page arguments' => array('eventbrite_venue_list_form'),
+//     'access callback' => 'user_access',
+//     'access arguments' => array('administer eventbrite settings'),
+//     'file' => 'eventbrite.venue.inc',
+//     'type' => MENU_LOCAL_TASK,
+//     'weight' => 2,
+//   );
 
   // $items['admin/config/services/eventbrite/venues/list'] = array(
   //   'title' => 'List Venues',
@@ -193,7 +193,7 @@ function eventbrite_entity_info() {
 //    'module' => 'eventbrite',
 //  );
 
-  $return['eventbrite_venue'] = array(
+  $entities['eventbrite_venue'] = array(
     'label' => t('Eventbrite Venue'),
     'entity class' => 'EventbriteVenue',
     'controller class' => 'EntityAPIController',
@@ -213,7 +213,7 @@ function eventbrite_entity_info() {
       'eventbrite_venue' => array(
         'label' => t('Eventbrite Venue'),
         'admin' => array(
-          'path' => 'admin/config/services/eventbrite/venues2',
+          'path' => 'admin/config/services/eventbrite/venues',
           'access arguments' => array('administer eventbrite venues'),
         ),
       ),
@@ -227,14 +227,14 @@ function eventbrite_entity_info() {
     'module' => 'eventbrite',
     // Enable the entity API's admin UI.
     'admin ui' => array(
-      'path' => 'admin/config/services/eventbrite/venues2',
+      'path' => 'admin/config/services/eventbrite/venues',
       'file' => 'eventbrite.venue.inc',
       'controller class' => 'EventbriteVenueUIController',
     ),
     'access callback' => 'eventbrite_access',
   );
 
-  $return['eventbrite_organizer'] = array(
+  $entities['eventbrite_organizer'] = array(
     'label' => t('Eventbrite Organizer'),
     'entity class' => 'EventbriteOrganizer',
     'controller class' => 'EntityAPIController',
@@ -271,16 +271,7 @@ function eventbrite_entity_info() {
     'access callback' => 'eventbrite_access',
   );
 
-  return $return;
-}
-
-/**
- * Implements hook_menu_alter()
- */
-function eventbrite_menu_alter(&$items) {
-  if (isset($items['admin/config/services/eventbrite/venue2'])) {
-    $items['admin/config/services/eventbrite/venue2']['type'] = MENU_LOCAL_TASK;
-  }
+  return $entities;
 }
 
 /**
@@ -515,18 +506,21 @@ function eventbrite_save($op, $params) {
     'payment_update',
   );
 
-  if (in_array($op, $valid_callbacks)) {
-    try{
-      $result = $eb_client->$op($params);
-    } catch (Exception $e) {
-      drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
-      watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
-    }
-  }
-  else {
+  if (!in_array($op, $valid_callbacks)) {
     drupal_set_message('Eventbrite save operation is not valid', 'error');
     watchdog('eventbrite', t('Eventbrite save operation is not valid'), NULL, WATCHDOG_ERROR);
+    return;
   }
+
+  try{
+    $result = $eb_client->$op($params);
+  } catch (Exception $e) {
+    drupal_set_message('Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), 'error');
+    watchdog('eventbrite', 'Eventbrite API call failed. Error message:' . "\n" . $e->getMessage(), NULL, WATCHDOG_ERROR);
+    return;
+  }
+
+//  module_invoke_all('eventbrite_' . $op, $result);
 
   return $result;
 }
@@ -597,56 +591,55 @@ function eventbrite_is_valid_auth() {
 
 
 /**
- * OG membership loader.
+ * Eventbrite venue loader.
  *
- * @param $name
- *   (optional) The name for this group membership. If no type is given all existing
- *   types are returned.
+ * @param $id
+ *   (optional) The internal id for this venue. If no id is given all existing
+ *   venues are returned.
  *
- * @return OgMembership
- *   Returns a fully-loaded group membership definition if a type name is passed.
- *   Else an array containing all types is returned.
+ * @return EventbriteVenue
+ *   Returns a fully-loaded Eventbrite venue definition.
  */
-function eventbrite_organizer_load($id) {
-  return entity_load_single('eventbrite_organizer', $id);
+function eventbrite_venue_load($id) {
+  return entity_load_single('eventbrite_venue', $id);
 }
 
 /**
- * Load multiple OG membership entities based on certain conditions.
+ * Load multiple Eventbrite venue entities based on certain conditions.
  *
- * @param $gids
- *   An array of group membership IDs.
+ * @param $ids
+ *   An array of Eventbrite venue internal IDs of Drupal.
  * @param $conditions
  *   An array of conditions to match against the {entity} table.
  * @param $reset
  *   A boolean indicating that the internal cache should be reset.
  *
  * @return
- *   An array of group entities, indexed by group ID.
+ *   An array of venue entities, indexed by venue ID.
  */
-function eventbrite_organizer_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
-  return entity_load('eventbrite_organizer', $ids, $conditions, $reset);
+function eventbrite_venue_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('eventbrite_venue', $ids, $conditions, $reset);
 }
 
 /**
- * Create a organizer object.
+ * Create a Eventbrite venue object.
  */
-function eventbrite_organizer_create($values = array()) {
+function eventbrite_venue_create($values = array()) {
   if (is_object($values)) {
     $values = (array) $values;
   }
 
-  return entity_get_controller('eventbrite_organizer')->create($values);
+  return entity_get_controller('eventbrite_venue')->create($values);
 }
 
 /**
- * Saves an organizer to the database.
+ * Saves an Eventbrite venue to the database.
  *
- * @param EventbriteOrganizer $organizer
- *   The organizer object.
+ * @param EventbriteVenue $venue
+ *   The venue object.
  */
-function eventbrite_organizer_save(EventbriteOrganizer $organizer) {
-  return $organizer->save();
+function eventbrite_venue_save(EventbriteVenue $venue) {
+  return $venue->save();
 }
 
 /**
@@ -662,7 +655,7 @@ class EventbriteVenue extends Entity {
   public $city;
   public $region;
   public $postal_code;
-  public $country;
+  public $country_code;
   public $status;
 
   public function defaultLabel() {
@@ -683,12 +676,12 @@ class EventbriteVenue extends Entity {
     $params = array(
       'organizer_id' => $this->organizer_id,
       'name' => $this->name,
-      'address' => '',
-      'address_2' => '',
-      'city' => '',
-      'region' => '',
-      'postal_code' => '',
-      'country_code' => '',
+      'address' => $this->address,
+      'address_2' => $this->address2,
+      'city' => $this->city,
+      'region' => $this->region,
+      'postal_code' => $this->postal_code,
+      'country_code' => $this->country_code,
     );
 
     if ($this->venue_id) {
@@ -699,16 +692,16 @@ class EventbriteVenue extends Entity {
 
     $result = eventbrite_save($api_callback, $params);
 
-    if ($result->process->status === 'OK') {
+    if ($result && $result->process->status === 'OK') {
 
       if (!empty($this->is_new)) {
-        drupal_set_message(t('This organizer has been created on the Eventbrite server.'));
+        drupal_set_message(t('This venue has been created on the Eventbrite server.'));
       }
       else {
-        drupal_set_message(t('This organizer has been updated on the Eventbrite server.'));
+        drupal_set_message(t('This venue has been updated on the Eventbrite server.'));
       }
 
-      $this->venue_id = (string) $result->process->id;
+      $this->venue_id = $result->process->id;
     }
 
     dpm($result);
@@ -723,6 +716,58 @@ class EventbriteVenue extends Entity {
 //      $cache[$this->uid][$this->type] = $this->pid;
 //    }
   }
+}
+
+/**
+ * Eventbrite oganizer loader.
+ *
+ * @param $id
+ *   (optional) The internal id for this organizer. If no id is given all existing
+ *   organizers are returned.
+ *
+ * @return EventbriteOrganizer
+ *   Returns a fully-loaded Eventbrite organizer if a id is passed.
+ */
+function eventbrite_organizer_load($id) {
+  return entity_load_single('eventbrite_organizer', $id);
+}
+
+/**
+ * Load multiple Eventbrite organizer entities based on certain conditions.
+ *
+ * @param $ids
+ *   An array of Eventbrite organizer internal IDs of Drupal.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   An array of organizer entities, indexed by organizer ID.
+ */
+function eventbrite_organizer_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('eventbrite_organizer', $ids, $conditions, $reset);
+}
+
+/**
+ * Create a Eventbrite organizer object.
+ */
+function eventbrite_organizer_create($values = array()) {
+  if (is_object($values)) {
+    $values = (array) $values;
+  }
+
+  return entity_get_controller('eventbrite_organizer')->create($values);
+}
+
+/**
+ * Saves an Eventbrite organizer to the database.
+ *
+ * @param EventbriteOrganizer $organizer
+ *   The organizer object.
+ */
+function eventbrite_organizer_save(EventbriteOrganizer $organizer) {
+  return $organizer->save();
 }
 
 /**
@@ -766,7 +811,7 @@ class EventbriteOrganizer extends Entity {
 
       $result = eventbrite_save($api_callback, $params);
 
-      if ($result->process->status === 'OK') {
+      if ($result && $result->process->status === 'OK') {
         $this->organizer_id = $result->process->id;
       }
 
