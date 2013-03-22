@@ -16,6 +16,8 @@ module_load_include('inc', 'eventbrite', 'eventbrite.common');
  * @see http://drupal.org/node/1354
  */
 function eventbrite_admin_settings($form, &$form_state) {
+  include_once DRUPAL_ROOT . '/includes/locale.inc';
+
   $form = array();
 
   $form['eventbrite_app_key'] = array(
@@ -25,6 +27,7 @@ function eventbrite_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('eventbrite_app_key', ''),
     '#description' => t('You must have an Eventbrite API key to use this module. You can obtain a key by <a href="http://www.eventbrite.com/api/key/" target="_blank">clicking here</a>.'),
   );
+
   $form['eventbrite_user_key'] = array(
     '#type' => 'textfield',
     '#title' => 'User Key',
@@ -41,6 +44,13 @@ function eventbrite_admin_settings($form, &$form_state) {
     '#required' => TRUE,
     '#default_value' => variable_get('eventbrite_cache_minimum', 5),
     '#description' => t('The minimum amount of time, in minutes, to cache results from the Eventbrite server.'),
+  );
+
+  $form['eventbrite_country_code'] = array(
+    '#type' => 'select',
+    '#title' => t('Default Country'),
+    '#options' => country_get_list(),
+    '#default_value' => variable_get('eventbrite_country_code', 'US'),
   );
 
   $form['eventbrite_debug'] = array(
@@ -97,7 +107,7 @@ function _eventbrite_admin_authenticate_keys($app_key, $user_key) {
     return FALSE;
   }
 
-  eventbrite_get_instance($app_key, $user_key);
+  eventbrite_get_object($app_key, $user_key);
 
   $user = eventbrite_get('user_get');
 
