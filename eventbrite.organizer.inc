@@ -96,42 +96,14 @@ class EventbriteOrganizerUIController extends EntityDefaultUIController {
     
     return $row;
   }
+
 }
-
-
-/*
- * Organizer Edit Form
- */
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-//function eventbrite_organizer($form, $form_state, $organizer_id = NULL) {
-//  $form = array();
-//
-//  if (isset($organizer_id) && $organizer = eventbrite_organizer_load($organizer_id)) {
-//    $form = eventbrite_organizer_form($organizer);
-//
-//    $form['submit'] = array(
-//      '#type' => 'submit',
-//      '#value' => t('Update organizer information'),
-//    );
-//  }
-//  else {
-//    $form = eventbrite_organizer_form();
-//
-//    $form['submit'] = array(
-//      '#type' => 'submit',
-//      '#value' => t('Create this organizer'),
-//    );
-//  }
-//
-//  return $form;
-//}
 
 
 /**
  * Generates the Eventbrite organizer editing form.
+ *
+ * @see eventbrite_organizer_form_submit()
  */
 function eventbrite_organizer_form($form, &$form_state, $entity, $op = 'edit') {
   $form = array();
@@ -178,7 +150,9 @@ function eventbrite_organizer_form($form, &$form_state, $entity, $op = 'edit') {
 }
 
 /**
- * Form API submit callback for the type form.
+ * Form API submit callback for the Eventbrite organizer edit form.
+ *
+ * @see eventbrite_organizer_form()
  */
 function eventbrite_organizer_form_submit(&$form, &$form_state) {
   $eventbrite_organizer = entity_ui_form_submit_build_entity($form, $form_state);
@@ -186,47 +160,8 @@ function eventbrite_organizer_form_submit(&$form, &$form_state) {
   // Save and go back.
   $eventbrite_organizer->save();
   $form_state['redirect'] = 'admin/config/services/eventbrite/organizers';
+  return;
 }
-
-///**
-// * @todo Please document this function.
-// * @see http://drupal.org/node/1354
-// */
-//function eventbrite_organizer_load($organizer_id) {
-//  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE organizer_id = :organizer_id', array(':organizer_id' => $organizer_id));
-//  foreach ($result AS $row) {
-//    return $row;
-//  }
-//}
-
-///*
-// * Default Payment Settings Form Validate
-// */
-///**
-// * @todo Please document this function.
-// * @see http://drupal.org/node/1354
-// */
-//function eventbrite_organizer_submit($form, &$form_state) {
-//  $organizer = _eventbrite_populate_organizer_from_form($form_state['values']);
-//  eventbrite_organizer_save($organizer);
-//
-//  return;
-//}
-
-///*
-// * This function pulls venue from the form results and builds a venue object for base Eventbrite module
-// */
-//function _eventbrite_populate_organizer_from_form($item) {
-//  $organizer = new stdClass();
-//
-//  if (!empty($item['organizer_id'])) {
-//    $organizer->organizer_id = $item['organizer_id'];
-//  }
-//  $organizer->name = $item['name'];
-//  $organizer->description = $item['description'];
-//
-//  return $organizer;
-//}
 
 /**
  * @todo Please document this function.
