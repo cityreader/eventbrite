@@ -490,7 +490,6 @@ function eventbrite_eventbrite_user_list_organizers($result) {
  * Implements hook_eventbrite_user_list_venues()
  */
 function eventbrite_eventbrite_user_list_venues($result) {
-
   $remote_venue_ids = $result;
   $venue_ids = db_query('SELECT venue_id FROM {eventbrite_venue}')->fetchCol();
 

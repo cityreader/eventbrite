@@ -62,8 +62,11 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
     if (!empty($entity->region)) {
       $address .= ', '. $entity->region;
     }
-    if (!empty($entity->country)) {
-      $address .= ', '. $entity->country;
+    if (!empty($entity->country_code)) {
+      include_once DRUPAL_ROOT . '/includes/locale.inc';
+      $country_list = country_get_list();
+
+      $address .= ', '. $country_list[$entity->country_code];
     }
     if (!empty($entity->postal_code)) {
       $address .= ', '. $entity->postal_code;

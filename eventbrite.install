@@ -150,7 +150,7 @@ function eventbrite_schema() {
         'length' => 32,
         'not null' => FALSE,
       ),
-      'country' => array(
+      'country_code' => array(
         'type' => 'varchar',
         'length' => 2,
         'not null' => FALSE,
@@ -301,4 +301,15 @@ function eventbrite_update_7004() {
   db_query('UPDATE {eventbrite_venue} SET address_2 = address2');
 
   db_drop_field('eventbrite_venue', 'address2');
+}
+
+/**
+ * Rename field `country` to `country_code` 
+ */
+function eventbrite_update_7005() {
+  db_add_field('eventbrite_venue', 'country_code', array('type' => 'varchar', 'length' => 2, 'not null' => FALSE));
+
+  db_query('UPDATE {eventbrite_venue} SET country_code = country');
+
+  db_drop_field('eventbrite_venue', 'country');
 }
