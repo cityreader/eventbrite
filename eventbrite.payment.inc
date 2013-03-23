@@ -254,10 +254,7 @@ function eventbrite_payment_settings_form_validate($form, &$form_state) {
  * @see eventbrite_payment_settings_form_validate()
  */
 function eventbrite_payment_settings_form_submit($form, &$form_state) {
-  dpm($form_state);
-    dpm(eventbrite_payment_get_settings($form_state['values']));
   variable_set('eventbrite_default_payment_settings', eventbrite_payment_get_settings($form_state['values']));
-     dpm(variable_get('eventbrite_default_payment_settings')); 
 }
 
 /**
