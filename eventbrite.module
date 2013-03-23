@@ -153,7 +153,7 @@ function eventbrite_menu() {
      'title' => 'Payment Settings',
      'description' => 'Configure default payment settings',
      'page callback' => 'drupal_get_form',
-     'page arguments' => array('eventbrite_payment_settings_form', TRUE),
+     'page arguments' => array('eventbrite_payment_admin_settings', TRUE),
      'access callback' => 'user_access',
      'access arguments' => array('administer site configuration'),
      'file' => 'eventbrite.payment.inc',
