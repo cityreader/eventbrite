@@ -241,6 +241,26 @@ function eventbrite_uninstall() {
 }
 
 /**
+ * Implements hook_field_schema().
+ */
+function eventbrite_field_schema($field) {
+  return array(
+    'columns' => array(
+      'value' => array(
+        'description' => 'Eventbrite identifier.',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+        'sortable' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'value' => array('value'),
+    ),
+  );
+}
+
+/**
  * @addtogroup updates-6.x-to-7.x
  * @{
  */
