@@ -52,7 +52,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['type'] = array(
     '#title' => t('Ticket type'),
     '#type' => 'checkboxes',
-    '#default_value' => isset($item['type'] ? $item['type']) : NULL;
+    '#default_value' => isset($item['type']) ? $item['type'] : NULL,
     '#options' => array(
       0 => t('Free'),
       1 => t('Paid'),
@@ -63,25 +63,25 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['name'] = array(
     '#title' => t('Ticket name'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['name'] ? $item['name']) : '';
+    '#default_value' => isset($item['name']) ? $item['name'] : '',
   );
 
   $element['description'] = array(
     '#title' => t('Ticket description'),
     '#type' => 'textarea',
-    '#default_value' => isset($item['description'] ? $item['description']) : '';
+    '#default_value' => isset($item['description']) ? $item['description'] : '',
   );
 
   $element['price'] = array(
     '#title' => t('Ticket Price'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['price'] ? $item['price']) : '';
+    '#default_value' => isset($item['price']) ? $item['price'] : '',
   );
 
   $element['quantity_available'] = array(
     '#title' => t('Ticket Quantity'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['quantity_available'] ? $item['quantity_available']) : '';
+    '#default_value' => isset($item['quantity_available']) ? $item['quantity_available'] : '',
     '#attributes' => array(
       'placeholder' => '100',
     ),
@@ -95,7 +95,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#title' => t('Ticket Quantity'),
     '#type' => 'date_combo',
     '#theme_wrappers' => array('date_combo'),
-    '#default_value' => isset($item['date'] ? $item['date']) : '';
+    '#default_value' => isset($item['date']) ? $item['date'] : '',
     '#date_timezone' => $timezone,
     '#element_validate' => array('date_combo_validate'),
   );
@@ -103,24 +103,24 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['include_fee'] = array(
     '#title' => t('Including service fees'),
     '#type' => 'textfield',
-    '#default_value' => isset($item[''] ? $item['']) : '';
+    '#default_value' => isset($item['']) ? $item[''] : '',
   );
 
   $element['tickets_per_order'] = array(
-    '#title' => t('Tickets permitted per order');
+    '#title' => t('Tickets permitted per order'),
     '#type' => 'fieldset',
-  )
+  );
 
   $element['tickets_per_order']['min'] = array(
     '#title' => t('Minimum'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['min'] ? $item['min']) : 1;
+    '#default_value' => isset($item['min']) ? $item['min'] : 1,
   );
 
   $element['tickets_per_order']['max'] = array(
     '#title' => t('Maximum'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['max'] ? $item['max']) : '';
+    '#default_value' => isset($item['max']) ? $item['max'] : '',
   );
 
   return $element;
