@@ -94,6 +94,121 @@ function eventbrite_schema() {
 //    'primary key' => array('op', 'id', 'query_string'),
 //  );
 
+
+  $schema['eventbrite_event'] = array(
+    'fields' => array(
+      'id' => array(
+        'description' => "The eventbrite_event entity id.",
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'user_key' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'event_id' => array(
+        'description' => "The Eventbrite event id.",
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => "The event title.",
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => "The event description.",
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+      ), 
+      'start_date' => array(
+        'description' => 'The event start date and time, in ISO 8601 format',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp without time zone',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => TRUE,
+      ),
+      'end_date' => array(
+        'description' => 'The event end date and time, in ISO 8601 format',
+        'type' => 'datetime',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp without time zone',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => TRUE,
+      ),
+      'privacy' => array(
+        'description' => '0 for a private event, 1 for a public event. If not provided, will default to 0.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'personalized_url' => array(
+        'description' => 'The event registration URL.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'venue_id' => array(
+        'description' => 'The event venue ID',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'organizer_id' => array(
+        'description' => 'The event organizer ID.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'capacity' => array(
+        'description' => 'The maximum number of people who can attend the event.',
+        'type' => 'int',
+        'size' => 'small',
+        'length' => 4,
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'The event status. Allowed values are 0 for “draft”, 1 for “live”.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the event was most created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'modified' => array(
+        'description' => 'The Unix timestamp when the event was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'event_id' => array('event_id'),
+    ),
+    'foreign keys' => array(
+      'eventbrite_organizer' => array(
+        'table' => 'eventbrite_organizer',
+        'columns' => array('organizer_id' => 'organizer_id'),
+      ),
+      'eventbrite_venue' => array(
+        'table' => 'eventbrite_venue',
+        'columns' => array('venue_id' => 'venue_id'),
+      ),
+    ),
+  );
+
   $schema['eventbrite_venue'] = array(
     'fields' => array(
       'venue_id' => array(
@@ -165,6 +280,12 @@ function eventbrite_schema() {
       ),
     ),
     'primary key' => array('venue_id'),
+    'foreign keys' => array(
+      'eventbrite_event' => array(
+        'table' => 'eventbrite_event',
+        'columns' => array('venue_id' => 'venue_id'),
+      ),
+    ),
   );
 
   $schema['eventbrite_organizer'] = array(
@@ -172,7 +293,7 @@ function eventbrite_schema() {
       'id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => 'Primary Key: eventbrite_organizer entity id for internal use.',
+        'description' => 'Primary Key: eventbrite_organizer entity id',
       ),
       'user_key' => array(
         'type' => 'varchar',
@@ -210,6 +331,12 @@ function eventbrite_schema() {
     'primary key' => array('id'),
     'unique keys' => array(
       'organizer_id' => array('organizer_id'),
+    ),
+    'foreign keys' => array(
+      'eventbrite_event' => array(
+        'table' => 'eventbrite_event',
+        'columns' => array('organizer_id' => 'organizer_id'),
+      ),
     ),
   );
 

@@ -15,7 +15,6 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
    */
   public function hook_menu() {
     $items = parent::hook_menu();
-    $items[$this->path]['title'] = t('Venues');
     $items[$this->path]['type'] = MENU_LOCAL_TASK;
     return $items;
   }
@@ -178,7 +177,7 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
 }
 
 /**
- * Form API submit callback for the Eventbrite organizer edit form.
+ * Form API submit callback for the Eventbrite venue edit form.
  *
  * @see eventbrite_venue_form()
  * @see eventbrite_venue_form_submit()
