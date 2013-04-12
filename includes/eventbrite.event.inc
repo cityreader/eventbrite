@@ -164,14 +164,17 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     // );
   // }
 // 
-  // $submit_value = ($op == 'add') ? t('Create this venue') : t('Update this venue');
-// 
-  // $form['actions'] = array('#type' => 'actions');
-	// $form['actions']['submit'] = array(
-	  // '#type' => 'submit',
-	  // '#value' => $submit_value,
-	  // '#weight' => 10,
-	// );
+  $submit_value = ($op == 'add') ? t('Create this event') : t('Update this event');
+
+
+  field_attach_form('eventbrite_event', $entity, $form, $form_state);
+
+  $form['actions'] = array('#type' => 'actions');
+	$form['actions']['submit'] = array(
+	  '#type' => 'submit',
+	  '#value' => $submit_value,
+	  '#weight' => 10,
+	);
 
   return $form;
 }

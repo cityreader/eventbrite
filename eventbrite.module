@@ -7,7 +7,7 @@
 
 define('EVENTBRITE_URL_ORG', 'http://www.eventbrite.com/org');
 
-module_load_include('inc', 'eventbrite', 'eventbrite.field');
+module_load_include('inc', 'eventbrite', 'includes/eventbrite.field');
 
 /**
  * Implements hook_libraries_info().
@@ -75,10 +75,9 @@ function eventbrite_menu() {
     'description' => 'Configure default payment settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('eventbrite_payment_admin_settings', TRUE),
-    'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer eventbrite settings'),
+    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
     'file' => 'eventbrite.payment.inc',
-    'file path' => 'includes',
     'type' => MENU_LOCAL_TASK,
     'weight' => 5,
   );
@@ -216,6 +215,60 @@ function eventbrite_entity_info() {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ */
+function eventbrite_entity_info_alter(&$info) {
+  if (isset($info['eventbrite_event'])) {
+     // Add or remove the body field, as needed.
+     
+    $field = field_info_field('tickets');
+    
+    $instance = field_info_instance('eventbrite_event', 'tickets', 'eventbrite_event');
+    
+    if (empty($field)) {
+      $field = array(
+        'field_name' => 'tickets',
+        'type' => 'eventbrite_ticket',
+        'module' => 'eventbrite',
+        'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+        'entity_types' => array('eventbrite_event'),
+      );
+       
+      $field = field_create_field($field);
+      
+    }
+
+    if (empty($instance)) {
+      
+      $instance = array(
+        'field_name' => 'tickets',
+        'entity_type' => 'eventbrite_event',
+        'bundle' => 'eventbrite_event',
+        'label' => 'Tickets',
+        'settings' => array(),
+        'description' => 'Event ticket field',
+        'required' => TRUE,
+        'widget' => array(
+          'type' => 'eventbrite_ticket_widget',
+        ),
+        'display' => array(
+          'default' => array(
+            'type' => 'eventbrite_ticket_formatter',
+            'weight' => 10,
+          ),
+          'teaser' => array(
+            'type' => 'eventbrite_ticket_formatter',
+            'weight' => 10,
+          ),
+        ),
+      ); 
+  
+      $instance = field_create_instance($instance);
+    }
+  }
+}
+
+/**
  * Implements hook_permissions().
  */
 function eventbrite_permission() {
@@ -224,7 +277,7 @@ function eventbrite_permission() {
       'title' => t('administer eventbrite settings'),
       'description' => t('Gives full control over the eventbrite admin page'),
     ),
-    'administer eventbrite venues' => array(
+    'administer eventbrite events' => array(
       'title' => t('administer eventbrite events'),
       'description' => t('allows users to configure eventbrite events'),
     ),
@@ -236,12 +289,15 @@ function eventbrite_permission() {
  */
 function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
   switch ($entity_type) {
-     case 'eventbrite_venue':
-       return user_access('administer eventbrite venues', $account);
+    case 'eventbrite_event':
+      return user_access('administer eventbrite events', $account);
+    
+    case 'eventbrite_venue':
+      return user_access('administer eventbrite settings', $account);
      
-     case 'eventbrite_organizer':
-       return user_access('administer eventbrite settings', $account);
-   }
+    case 'eventbrite_organizer':
+      return user_access('administer eventbrite settings', $account);
+  }
 
   // if ($op == 'create' || $op == 'update') {
   //   $op = 'edit';
@@ -659,7 +715,7 @@ class EventbriteEvent extends Entity {
 
 
   public function defaultLabel() {
-    return $this->name;
+    return $this->title;
   }
 
   /**

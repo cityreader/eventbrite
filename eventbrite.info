@@ -5,15 +5,16 @@ package = Eventbrite
 
 dependencies[] = libraries
 dependencies[] = entity
-dependencies[] = date_api
+dependencies[] = date_popup
 
-files[] = eventbrite.admin.inc
+files[] = includes/eventbrite.admin.inc
 files[] = eventbrite.api.inc
 files[] = eventbrite.common.inc
-files[] = eventbrite.field.inc
-files[] = eventbrite.organizer.inc
-files[] = eventbrite.payment.inc
-files[] = eventbrite.venue.inc
+files[] = includes/eventbrite.field.inc
+files[] = includes/eventbrite.event.inc
+files[] = includes/eventbrite.organizer.inc
+files[] = includes/eventbrite.payment.inc
+files[] = includes/eventbrite.venue.inc
 files[] = eventbrite.css
 
 configure = admin/config/services/eventbrite

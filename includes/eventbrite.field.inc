@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Defines a time zone field type.
+ * Defines a Eventbrite ticket field type.
  */
 
 /**
@@ -28,7 +28,7 @@ function eventbrite_field_info() {
 function eventbrite_field_widget_info() {
   return array(
     'eventbrite_ticket_widget' => array(
-      'label' => t('Default'),
+      'label' => t('Eventbrite ticket'),
       'field types' => array('eventbrite_ticket'),
       // 'settings' => array('size' => 60),
       // 'behaviors' => array(
@@ -49,21 +49,34 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   // );
   $item =& $items[$delta];
 
-  $element['type'] = array(
-    '#title' => t('Ticket type'),
-    '#type' => 'checkboxes',
-    '#default_value' => isset($item['type']) ? $item['type'] : NULL,
+  // $element['type'] = array(
+    // '#title' => t('Ticket type'),
+    // '#type' => 'checkboxes',
+    // '#default_value' => isset($item['type']) ? $item['type'] : NULL,
+    // '#options' => array(
+      // 0 => t('Free'),
+      // 1 => t('Paid'),
+      // 2 => t('Donation'),
+    // ),
+  // );
+
+  $element['is_donation'] = array(
+    '#title' => t('Is donation'),
+    '#description' => t('0 for fixed-price tickets, 1 for donations. 0 will be used by default if not provided.'),
+    '#type' => 'radios',
     '#options' => array(
-      0 => t('Free'),
-      1 => t('Paid'),
-      2 => t('Donation'),
+      0 => 'No',
+      1 => 'Yes',
     ),
+    '#default_value' => isset($item['is_donation']) ? $item['is_donation'] : 0,
+    '#required' => TRUE,
   );
 
   $element['name'] = array(
     '#title' => t('Ticket name'),
     '#type' => 'textfield',
     '#default_value' => isset($item['name']) ? $item['name'] : '',
+    '#required' => TRUE,
   );
 
   $element['description'] = array(
@@ -80,8 +93,9 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   $element['quantity_available'] = array(
     '#title' => t('Ticket Quantity'),
+    '#description' => t('The number of tickets available. Not required for donations.'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['quantity_available']) ? $item['quantity_available'] : '',
+    '#default_value' => isset($item['quantity_available']) ? $item['quantity_available'] : 100,
     '#attributes' => array(
       'placeholder' => '100',
     ),
@@ -92,18 +106,43 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $timezone = date_default_timezone();
 
   $element['date'] = array(
-    '#title' => t('Ticket Quantity'),
-    '#type' => 'date_combo',
-    '#theme_wrappers' => array('date_combo'),
-    '#default_value' => isset($item['date']) ? $item['date'] : '',
-    '#date_timezone' => $timezone,
-    '#element_validate' => array('date_combo_validate'),
+    '#title' => t('Date'),
+    '#type' => 'fieldset',
+    '#validator' => array('eventbrite_date_combo_validat'),
   );
 
+  $element['date']['start_date'] = array(
+    '#title' => t('Start'),
+    '#description' => t('The date and time when ticket sales start.'),
+    '#type' => 'date_popup',
+    '#date_type' => DATE_DATETIME,
+    '#date_timezone' => $timezone,
+    '#date_format' => 'm/d/Y - H:i',
+    '#date_increment' => 1,
+    '#date_year_range' => '0:+1',
+    '#default_value' => isset($item['start_date']) ? $item['start_date'] : '',
+  );
+
+  $element['date']['end_date'] = array(
+    '#title' => t('End'),
+    '#description' => t('The date and time when ticket sales end.'),
+    '#type' => 'date_popup',
+    '#date_type' => DATE_DATETIME,
+    '#date_timezone' => $timezone,
+    '#date_format' => 'm/d/Y - H:i',
+    '#date_increment' => 1,
+    '#date_year_range' => '0:+1',
+    '#default_value' => isset($item['end_date']) ? $item['end_date'] : '',
+  );
+  
   $element['include_fee'] = array(
     '#title' => t('Including service fees'),
-    '#type' => 'textfield',
-    '#default_value' => isset($item['']) ? $item[''] : '',
+    '#type' => 'radios',
+    '#options' => array(
+      0 => t('Add the Eventbrite service fee on top of ticket price'),
+      1 => t('Include it in the ticket price'),
+    ),
+    '#default_value' => isset($item['include_fee']) ? $item['include_fee'] : 0,
   );
 
   $element['tickets_per_order'] = array(
@@ -113,12 +152,14 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
 
   $element['tickets_per_order']['min'] = array(
     '#title' => t('Minimum'),
+    '#description' => t('The minimum number of tickets per order.'),
     '#type' => 'textfield',
     '#default_value' => isset($item['min']) ? $item['min'] : 1,
   );
 
   $element['tickets_per_order']['max'] = array(
     '#title' => t('Maximum'),
+    '#description' => t('The maximum number of tickets per order.'),
     '#type' => 'textfield',
     '#default_value' => isset($item['max']) ? $item['max'] : '',
   );
@@ -144,16 +185,16 @@ function hook_field_formatter_info() {
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function eventbritefield_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
-  //we dont want users change the field size from 10.
-  $form['instance']['widget']['settings']['size']['#type'] = 'value';
-  $form['instance']['widget']['settings']['size']['#value'] = '10';
-}
+// function eventbrite_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  // //we dont want users change the field size from 10.
+  // $form['instance']['widget']['settings']['size']['#type'] = 'value';
+  // $form['instance']['widget']['settings']['size']['#value'] = '10';
+// }
 
 /**
  * Implements hook_field_settings_form().
  */
-function eventbritefield_field_settings_form($field, $instance, $has_data) {
+function eventbrite_field_settings_form($field, $instance, $has_data) {
   //don't do anything for now
   /*
   $form['max_length'] = array(
@@ -172,7 +213,7 @@ function eventbritefield_field_settings_form($field, $instance, $has_data) {
 /**
  * Implements hook_field_validate().
  */
-function eventbritefield_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+function eventbrite_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   //no validation for now. We need to add a validator to check to see if the event exists or not yet.
 
 /*
@@ -191,98 +232,35 @@ function eventbritefield_field_validate($entity_type, $entity, $field, $instance
 /**
  * Implements hook_field_is_empty().
  */
-function eventbritefield_field_is_empty($item, $field) {
-  return empty($item['value']);
+function eventbrite_field_is_empty($item, $field) {
+  return empty($item['name']);
 }
 
-/**
- * Implements hook_field_formatter_info().
- */
-function eventbritefield_field_formatter_info() {
-  return array(
-    'eventbrite_iframe' => array(
-      'label' => 'Eventbrite iFrame',
-      'field types' => array('eventbritefield'),
-    ),
-    'eventbrite_url' => array(
-      'label' => 'Eventbrite Embedded URL',
-      'field types' => array('eventbritefield'),
-    ),
-  );
-}
+// /**
+ // * Implements hook_options_list().
+ // */
+// function eventbrite_options_list($field) {
+  // return empty($field['settings']['exclude']) ? eventbritefield_identifiers_list() : array_diff(eventbritefield_identifiers_list(), $field['settings']['exclude']);
+// }
 
-/**
- * Implements hook_widget_info().
- */
-function eventbritefield_field_widget_info() {
-  return array(
-    'eventbrite_autocomplete' => array(
-      'label' => t('Autocomplete eventbrite ID'),
-      'field types' => array('eventbritefield'),
-      'settings' => array('size' => 60),
-    ),
-  );
-}
+// /**
+ // * Fetch a default array of excluded time zones for use when creating a time zone field.
+ // * See http://www.php.net/manual/en/timezones.others.php
+ // */
+// function eventbrite_excluded_timezones() {
+  // return preg_grep(';^((Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)/.*|UTC)$;', eventbritefield_identifiers_list(), PREG_GREP_INVERT);
+// }
 
-/**
- * Implements hook_field_widget_info_alter().
- */
-function eventbritefield_field_widget_info_alter(&$info) {
-  $info['text_textfield']['field types'][] = 'eventbritefield';
-}
-
-/**
- * Implements hook_field_widget_form().
- */
-function eventbritefield_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
-  $element += array(
-    '#type' => 'textfield',
-    '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
-    '#size' => $instance['widget']['settings']['size'],
-    '#autocomplete_path' => 'eventbritefield/autocomplete/' . $field['field_name'],
-  );
-  return array('value' => $element);
-}
-
-/**
- * Retrieve an array of autocomplete suggestions.
- */
-function eventbritefield_autocomplete($field_name, $string = '', $arg4 = '', $arg5 = '') {
-  if ($arg4) {
-    $string .= '/' . $arg4;
-  }
-  if ($arg5) {
-    $string .= '/' . $arg5;
-  }
-  $string = preg_replace(';[^a-z0-9/_-];i', '', str_replace(' ', '_', trim($string)));
-  drupal_json_output($string ? preg_grep(';'. $string .';i', eventbritefield_options_list(field_info_field($field_name))) : array());
-}
-
-/**
- * Implements hook_options_list().
- */
-function eventbritefield_options_list($field) {
-  return empty($field['settings']['exclude']) ? eventbritefield_identifiers_list() : array_diff(eventbritefield_identifiers_list(), $field['settings']['exclude']);
-}
-
-/**
- * Fetch a default array of excluded time zones for use when creating a time zone field.
- * See http://www.php.net/manual/en/timezones.others.php
- */
-function eventbritefield_excluded_timezones() {
-  return preg_grep(';^((Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific)/.*|UTC)$;', eventbritefield_identifiers_list(), PREG_GREP_INVERT);
-}
-
-/**
- * Cache the time zone identifiers list as a static variable.
- */
-function eventbritefield_identifiers_list() {
-  static $list;
-  if (empty($list)) {
-    $list = drupal_map_assoc(timezone_identifiers_list());
-  }
-  return $list;
-}
+// /**
+ // * Cache the time zone identifiers list as a static variable.
+ // */
+// function eventbritefield_identifiers_list() {
+  // static $list;
+  // if (empty($list)) {
+    // $list = drupal_map_assoc(timezone_identifiers_list());
+  // }
+  // return $list;
+// }
 
 /**
  * Implements hook_field_formatter_view().
@@ -290,80 +268,80 @@ function eventbritefield_identifiers_list() {
 function eventbritefield_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
   switch ($display['type']) {
-    case 'eventbrite_iframe':
-      // Try to load the library and check if that worked.
-      //$library = libraries_load('eventbrite');
-      //error_log(print_r($library,true));
-      if (($library = libraries_load('eventbrite')) && !empty($library['loaded'])) {
-        // Do something with the library here.
-        $eb_client = new Eventbrite( array('app_key' => variable_get('eventbrite_app_key','') ,
-                                           'user_key' =>variable_get('eventbrite_user_key','')));
-        foreach ($items as $delta => $item) {
-          // Give us an embedded iFrame of the eventbrite page
-          try {
-            $resp = $eb_client->event_get( array('id' => $item['value']) );
-            $element[$delta] = array('#markup' => Eventbrite::ticketWidget($resp->event, eventbritefield_calcualate_iframe($resp->event)));
-          } catch (Exception $e) {
-            //lets not do anything for now.
-          }
-        }
-      }
-
-      break;
-    case 'eventbrite_url':
-      foreach ($items as $delta => $item) {
-        //print out a link going to the site
-        $element[$delta] = array('#markup' => $item['value'] ? eventbritefield_field_url($item['value']) : '');
-      }
-      break;
+    // case 'eventbrite_iframe':
+      // // Try to load the library and check if that worked.
+      // //$library = libraries_load('eventbrite');
+      // //error_log(print_r($library,true));
+      // if (($library = libraries_load('eventbrite')) && !empty($library['loaded'])) {
+        // // Do something with the library here.
+        // $eb_client = new Eventbrite( array('app_key' => variable_get('eventbrite_app_key','') ,
+                                           // 'user_key' =>variable_get('eventbrite_user_key','')));
+        // foreach ($items as $delta => $item) {
+          // // Give us an embedded iFrame of the eventbrite page
+          // try {
+            // $resp = $eb_client->event_get( array('id' => $item['value']) );
+            // $element[$delta] = array('#markup' => Eventbrite::ticketWidget($resp->event, eventbritefield_calcualate_iframe($resp->event)));
+          // } catch (Exception $e) {
+            // //lets not do anything for now.
+          // }
+        // }
+      // }
+// 
+      // break;
+    // case 'eventbrite_url':
+      // foreach ($items as $delta => $item) {
+        // //print out a link going to the site
+        // $element[$delta] = array('#markup' => $item['value'] ? eventbritefield_field_url($item['value']) : '');
+      // }
+      // break;
   }
   return $element;
 }
 
-/*
- * Lets do some funky iframe math based on what we know as our solid grid. Yah this is horrible for many reasons, but
- * at least we get a semi-functional iframe and not something with a bunch of white space or scroll bars
- */
-function eventbritefield_calcualate_iframe($event) {
-  $cost = 0;
-  $base_size = 140;
-  foreach($event->tickets AS $tickets) {
-    $ticket = $tickets->ticket;
-    if($ticket->visible == 'true') {
-      $desc_size = 0;
-      $title_size = 0;
-      $cost += $ticket->price;
-
-      if($ticket->description != '') {
-        //the magic really happens here -- we estimate on a full length page, a description can go 12 words before wrapping
-        //make smaller if your eventbrite section is smaller. We really should make this dynamic.
-        $desc_size = ceil((int)count(explode(' ', $ticket->description)) / 12);
-      }
-      //like description, this too has a decent size for a full width page. 6 should be enough before wrapping
-      $title_size = ceil((int)count(explode(' ', $ticket->name)) / 6);
-
-      //all line items need at least 30px. We take away one title size to count for the 30px. Descriptions and additional titles are 10px ea.
-      $base_size += 42 + ($desc_size * 10) + (($title_size-1) * 10);
-    }
-  }
-  //if the event is not free, there is an additional footer that costs 50px.
-  if($cost > 0) {
-    $base_size += 50;
-  }
-  return $base_size . 'px';
-}
-/**
- * @param $item_id Eventbrite ID
- * Give us a URL (customized by settings for field) that links to an eventbrite page
- */
-function eventbritefield_field_url($item_id) {
-  return '<a href="http://www.eventbrite.com/event/'.$item_id.'">Register Now</a>';
-}
+// /*
+ // * Lets do some funky iframe math based on what we know as our solid grid. Yah this is horrible for many reasons, but
+ // * at least we get a semi-functional iframe and not something with a bunch of white space or scroll bars
+ // */
+// function eventbritefield_calcualate_iframe($event) {
+  // $cost = 0;
+  // $base_size = 140;
+  // foreach($event->tickets AS $tickets) {
+    // $ticket = $tickets->ticket;
+    // if($ticket->visible == 'true') {
+      // $desc_size = 0;
+      // $title_size = 0;
+      // $cost += $ticket->price;
+// 
+      // if($ticket->description != '') {
+        // //the magic really happens here -- we estimate on a full length page, a description can go 12 words before wrapping
+        // //make smaller if your eventbrite section is smaller. We really should make this dynamic.
+        // $desc_size = ceil((int)count(explode(' ', $ticket->description)) / 12);
+      // }
+      // //like description, this too has a decent size for a full width page. 6 should be enough before wrapping
+      // $title_size = ceil((int)count(explode(' ', $ticket->name)) / 6);
+// 
+      // //all line items need at least 30px. We take away one title size to count for the 30px. Descriptions and additional titles are 10px ea.
+      // $base_size += 42 + ($desc_size * 10) + (($title_size-1) * 10);
+    // }
+  // }
+  // //if the event is not free, there is an additional footer that costs 50px.
+  // if($cost > 0) {
+    // $base_size += 50;
+  // }
+  // return $base_size . 'px';
+// }
+// /**
+ // * @param $item_id Eventbrite ID
+ // * Give us a URL (customized by settings for field) that links to an eventbrite page
+ // */
+// function eventbritefield_field_url($item_id) {
+  // return '<a href="http://www.eventbrite.com/event/'.$item_id.'">Register Now</a>';
+// }
 
 /**
  * Implements hook_field_formatter_settings_form().
  */
-function eventbritefield_field_formatter_settings_form($field, $instance, $view_mode) {
+function eventbrite_field_formatter_settings_form($field, $instance, $view_mode) {
   $form = array();
   /* USe this for custom URL settings when we get there....
   if ($instance['display'][$view_mode]['type'] == 'eventbrite_url') {
@@ -383,7 +361,7 @@ function eventbritefield_field_formatter_settings_form($field, $instance, $view_
  * Implements hook_field_formatter_settings_summary().
  * Use this to select the format settings for URLS or iFrames
 
-function eventbritefield_field_formatter_settings_summary($field, $instance, $view_mode) {
+function eventbrite_field_formatter_settings_summary($field, $instance, $view_mode) {
   $summary = '';
   if ($instance['display'][$view_mode]['type'] == 'eventbrite_url') {
     $summary = t('Format string: %format<br />Sample date: %date', array(
@@ -398,6 +376,7 @@ function eventbritefield_field_formatter_settings_summary($field, $instance, $vi
 /**
  * Implements hook_field_widget_error().
  */
-function eventbritefield_field_widget_error($element, $error, $form, &$form_state) {
+function eventbrite_field_widget_error($element, $error, $form, &$form_state) {
   form_error($element, $error['message']);
 }
+
