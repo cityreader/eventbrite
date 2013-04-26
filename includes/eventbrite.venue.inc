@@ -531,7 +531,6 @@ function eventbrite_venue_list_form_submit($form, &$form_state) {
   }
 }
 
-
 ///**
 // * Theme venue list form.
 // *

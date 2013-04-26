@@ -1018,3 +1018,37 @@ class EventbriteOrganizer extends Entity {
 //    }
   }
 }
+
+function eventbrite_get_options($type) {
+  $cache = &drupal_static(__FUNCTION__);
+  
+  if (!in_array($type, array('venue', 'organizer'))) {
+    return array();
+  }
+  
+  if (!isset($cache[$type])) {
+    if ($type == 'venue') {
+      $options = array('' => t('TBA'));
+    }
+    else {
+      $options = array();
+    }
+
+    $result = db_select('eventbrite_' . $type, 'e')
+      ->fields('e', array($type . '_id', 'name'))
+      ->condition('e.status', 1)
+      ->orderBY('e.name', 'ASC')
+      ->execute()
+      ->fetchAllKeyed();
+
+    if ($result) {
+      $options += $result;
+    }
+
+    $cache[$type] = empty($options) ? array() : $options;
+  }
+  
+  return $cache[$type];
+}
+
+

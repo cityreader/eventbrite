@@ -343,6 +343,7 @@ function eventbrite_organizer_list_form_submit($form, &$form_state) {
 }
 
 
+
 ///**
 // * @todo Please document this function.
 // * @see http://drupal.org/node/1354
