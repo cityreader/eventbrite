@@ -119,7 +119,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
   $form['date'] = array(
     '#title' => t('Date'),
     '#type' => 'fieldset',
-    '#validator' => array('eventbrite_date_combo_validat'),
+    '#validator' => array('eventbrite_date_combo_validate'),
     '#weight' => -18,
   );
 
@@ -129,10 +129,11 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'm/d/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => $entity->start_date,
+    '#required' => TRUE,
   );
 
   $form['date']['end_date'] = array(
@@ -141,10 +142,11 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'm/d/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => $entity->end_date,
+    '#required' => TRUE,
   );
 
   $form['privacy'] = array(
@@ -217,16 +219,14 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
  * @see eventbrite_event_form_submit()
  */
 function eventbrite_event_form_validate($form, &$form_state) {
-  // @todo Check that there isn't already a venue with this name for this user key
-  /*
-   if ($values['accept_paypal']) {
-   // If using PayPay check that paypal email is entered
-   if (!valid_email_address($values['paypal_email'])) {
-   // TODO: Does this need to actually verified that there is a PayPal account registered to this user
-   $form_errors['paypal_email'] = t('Please provide a valid Paypal email.');
-   }
-   }
-   */
+  if ($form_state['triggering_element']['#value'] == $form['actions']['draft']['#value']) {
+    $form_state['values']['status'] = 0;
+  }
+  elseif ($form_state['triggering_element']['#value'] == $form['actions']['submit']['#value']) {
+    $form_state['values']['status'] = 1;
+  }
+  
+  
 }
 
 /**
@@ -236,10 +236,16 @@ function eventbrite_event_form_validate($form, &$form_state) {
  * @see eventbrite_event_form_validate()
  */
 function eventbrite_event_form_submit($form, &$form_state) {
-  // $eventbrite_venue = entity_ui_form_submit_build_entity($form, $form_state);
-// 
-  // $eventbrite_venue->save();
-  // $form_state['redirect'] = 'admin/config/services/eventbrite/venues';
+  $eventbrite_event = entity_ui_form_submit_build_entity($form, $form_state);
+ 
+  if (TRUE) {
+
+    dpm($form_state);
+    
+  }
+  
+  $eventbrite_event->save();
+  $form_state['redirect'] = 'admin/config/services/eventbrite/events';
   return;
 }
 

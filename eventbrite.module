@@ -106,7 +106,7 @@ function eventbrite_entity_info() {
       ),
     ),
     'entity keys' => array(
-      'id' => 'event_id',
+      'id' => 'id',
       'label' => 'title',
     ),
     'view modes' => array(
@@ -735,9 +735,14 @@ class EventbriteEvent extends Entity {
         'organizer_id' => $this->organizer_id,
         'capacity' => $this->capacity,
         'status' => $this->status,
-        'created' => $this->created,
-        'modified' => $this->modified,
+        'modified' => REQUEST_TIME,
       );
+
+      if ($this->is_new) {
+        $params['created'] = $params['modified'] = REQUEST_TIME;
+      }
+
+      $params['status'] = $this->status ? 'live' : 'draft';
 
       if ($this->event_id) {
         $params['id'] = $this->event_id;
@@ -745,11 +750,11 @@ class EventbriteEvent extends Entity {
 
       $api_callback = !empty($this->is_new) && $this->venue_id ? 'event_new' : 'event_update';
 
-      $result = eventbrite_save($api_callback, $params);
-
-      if (!$result || $result->process->status !== 'OK') {
-        return;
-      }
+      // $result = eventbrite_save($api_callback, $params);
+// 
+      // if (!$result || $result->process->status !== 'OK') {
+        // return;
+      // }
 
       if (!empty($this->is_new)) {
         drupal_set_message(t('This event has been created on the Eventbrite server.'));
@@ -758,9 +763,9 @@ class EventbriteEvent extends Entity {
         drupal_set_message(t('This event has been updated on the Eventbrite server.'));
       }
 
-      $this->event_id = $result->process->id;
+//      $this->event_id = $result->process->id;
 
-      dpm($result);
+//      dpm($result);
     }
 
 

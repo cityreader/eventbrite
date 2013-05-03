@@ -69,14 +69,12 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
       1 => 'Yes',
     ),
     '#default_value' => isset($item['is_donation']) ? $item['is_donation'] : 0,
-    '#required' => TRUE,
   );
 
   $element['name'] = array(
     '#title' => t('Ticket name'),
     '#type' => 'textfield',
     '#default_value' => isset($item['name']) ? $item['name'] : '',
-    '#required' => TRUE,
   );
 
   $element['description'] = array(
@@ -105,31 +103,25 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   // $timezone = date_get_timezone($field['settings']['tz_handling'], isset($items[0]['timezone']) ? $items[0]['timezone'] : date_default_timezone());
   $timezone = date_default_timezone();
 
-  $element['date'] = array(
-    '#title' => t('Date'),
-    '#type' => 'fieldset',
-    '#validator' => array('eventbrite_date_combo_validat'),
-  );
-
-  $element['date']['start_date'] = array(
-    '#title' => t('Start'),
+  $element['start_date'] = array(
+    '#title' => t('Start Date'),
     '#description' => t('The date and time when ticket sales start.'),
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'm/d/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['start_date']) ? $item['start_date'] : '',
   );
 
-  $element['date']['end_date'] = array(
-    '#title' => t('End'),
+  $element['end_date'] = array(
+    '#title' => t('End Date'),
     '#description' => t('The date and time when ticket sales end.'),
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'm/d/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['end_date']) ? $item['end_date'] : '',
@@ -216,17 +208,13 @@ function eventbrite_field_settings_form($field, $instance, $has_data) {
 function eventbrite_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   //no validation for now. We need to add a validator to check to see if the event exists or not yet.
 
-/*
   foreach ($items as $delta => $item) {
-    if (!empty($item['value']) && !isset($options[$item['value']])) {
-      $errors[$field['field_name']][$langcode][$delta][] = array(
-        'error' => 'eventbrite_illegal_value',
-        'message' => t('%name: This time zone is not valid.', array('%name' => t($instance['label']))),
-      );
-    }
+    // if (!empty($item['name']) && !isset($options[$item['value']])) {
+// 
+    // }
   }
   return $items;
-*/
+
 }
 
 /**
