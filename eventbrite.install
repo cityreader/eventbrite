@@ -226,7 +226,12 @@ function eventbrite_schema() {
         'type' => 'text',
         'not null' => FALSE,
         'size' => 'medium',
-      ), 
+      ),
+      'description_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
       'start_date' => array(
         'description' => 'The event start date and time, in ISO 8601 format',
         'type' => 'datetime',
@@ -577,7 +582,12 @@ function eventbrite_update_7006() {
         'type' => 'text',
         'not null' => FALSE,
         'size' => 'medium',
-      ), 
+      ),
+      'description_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
       'start_date' => array(
         'description' => 'The event start date and time, in ISO 8601 format',
         'type' => 'datetime',

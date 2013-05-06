@@ -702,6 +702,7 @@ class EventbriteEvent extends Entity {
   public $event_id;
   public $title;
   public $description;
+  public $description_format;
   public $start_date;
   public $end_date;
   public $privacy;
@@ -725,6 +726,11 @@ class EventbriteEvent extends Entity {
     // Only save data remotely to Eventbrite in a form submission 
     if (isset($this->form_id)) {
 
+      if (is_array($this->description)) {
+        $this->description_format = $this->description['format'];
+        $this->description = $this->description['value'];
+      }
+
       $params = array(
         'title' => $this->title,
         'description' => $this->description,
@@ -738,7 +744,7 @@ class EventbriteEvent extends Entity {
         'modified' => REQUEST_TIME,
       );
 
-      if ($this->is_new) {
+      if (!empty($this->is_new)) {
         $params['created'] = $params['modified'] = REQUEST_TIME;
       }
 
