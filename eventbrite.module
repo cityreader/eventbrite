@@ -689,8 +689,8 @@ function eventbrite_event_create($values = array()) {
  * @param EventbriteVenue $event
  *   The event object.
  */
-function eventbrite_event_save(EventbriteVenue $venue) {
-  return $venue->save();
+function eventbrite_event_save(EventbriteVenue $event) {
+  return $event->save();
 }
 
 
@@ -749,6 +749,8 @@ class EventbriteEvent extends Entity {
       }
 
       $params['status'] = $this->status ? 'live' : 'draft';
+      
+      $params['hide'] = $this->status ? 'y' : 'n';
 
       if ($this->event_id) {
         $params['id'] = $this->event_id;

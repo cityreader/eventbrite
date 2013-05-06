@@ -87,6 +87,9 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#title' => t('Ticket Price'),
     '#type' => 'textfield',
     '#default_value' => isset($item['price']) ? $item['price'] : '',
+    '#attributes' => array(
+      'placeholder' => '0.00',
+    ),
   );
 
   $element['quantity_available'] = array(
@@ -103,9 +106,14 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   // $timezone = date_get_timezone($field['settings']['tz_handling'], isset($items[0]['timezone']) ? $items[0]['timezone'] : date_default_timezone());
   $timezone = date_default_timezone();
 
-  $element['start_date'] = array(
-    '#title' => t('Start Date'),
-    '#description' => t('The date and time when ticket sales start.'),
+  $element['date'] = array(
+    '#title' => t('Date & Time'),
+    '#type' => 'fieldset',
+    '#parents' => array($field['field_name'], $langcode, $delta),
+  );
+  
+  $element['date']['start_date'] = array(
+    '#title' => t('Sale Starts'),
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
@@ -115,9 +123,8 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#default_value' => isset($item['start_date']) ? $item['start_date'] : '',
   );
 
-  $element['end_date'] = array(
-    '#title' => t('End Date'),
-    '#description' => t('The date and time when ticket sales end.'),
+  $element['date']['end_date'] = array(
+    '#title' => t('Sale Ends'),
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
@@ -140,6 +147,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['tickets_per_order'] = array(
     '#title' => t('Tickets permitted per order'),
     '#type' => 'fieldset',
+    '#parents' => array($field['field_name'], $langcode, $delta),
   );
 
   $element['tickets_per_order']['min'] = array(
@@ -153,7 +161,14 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#title' => t('Maximum'),
     '#description' => t('The maximum number of tickets per order.'),
     '#type' => 'textfield',
-    '#default_value' => isset($item['max']) ? $item['max'] : '',
+    '#default_value' => isset($item['max']) ? $item['max'] : NULL,
+  );
+
+  $element['hide'] = array(
+    '#title' => t('Auto-hide ticket'),
+    '#prefix' => '<label>' . t('Ticket Visibility') . '</label>',
+    '#type' => 'checkbox',
+    '#default_value' => isset($item['hide']) ? $item['hide'] : 0,
   );
 
   return $element;
@@ -204,13 +219,19 @@ function eventbrite_field_settings_form($field, $instance, $has_data) {
 
 /**
  * Implements hook_field_validate().
+ * 
+ * Validate
+ *  - start_date
+ *  - end_date
+ *  - max
  */
 function eventbrite_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
   //no validation for now. We need to add a validator to check to see if the event exists or not yet.
 
   foreach ($items as $delta => $item) {
+
     // if (!empty($item['name']) && !isset($options[$item['value']])) {
-// 
+
     // }
   }
   return $items;
@@ -223,6 +244,32 @@ function eventbrite_field_validate($entity_type, $entity, $field, $instance, $la
 function eventbrite_field_is_empty($item, $field) {
   return empty($item['name']);
 }
+
+/**
+ * Implements hook_field_presave()
+ * 
+ * Sanitize field data and remove empty values
+ */
+function eventbrite_field_presave($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  $array = array(
+    'description',
+    'price',
+    'start_date',
+    'end_date',
+    'min',
+    'max',
+  );
+  
+  foreach ($items as $delta=>$item) {
+    foreach ($array as $attribute) {
+      if (!is_numeric($item[$attribute]) && empty($item[$attribute])) {
+        unset($items[$delta][$attribute]);
+      }
+    }
+  }
+}
+
+
 
 // /**
  // * Implements hook_options_list().

@@ -96,8 +96,8 @@ function eventbrite_field_schema() {
     'quantity_available' => array(
       'description' => '',
       'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
+      'unsigned' => FALSE,
+      'not null' => FALSE,
       'default' => 0,
     ),
     'start_date' => array(
@@ -107,7 +107,7 @@ function eventbrite_field_schema() {
       'pgsql_type' => 'timestamp without time zone',
       'sqlite_type' => 'varchar',
       'sqlsrv_type' => 'smalldatetime',
-      'not null' => TRUE,
+      'not null' => FALSE,
     ),
     'end_date' => array(
       'description' => 'The date and time when ticket sales stop, in ISO 8601 format (e.g., “2007-12-31 23:59:59″)',
@@ -116,7 +116,7 @@ function eventbrite_field_schema() {
       'pgsql_type' => 'timestamp without time zone',
       'sqlite_type' => 'varchar',
       'sqlsrv_type' => 'smalldatetime',
-      'not null' => TRUE,
+      'not null' => FALSE,
     ),
     'include_fee' => array(
       'description' => '0 to add the Eventbrite service fee on top of ticket price, or 1 to include it in the ticket price. 0 will be used by default if not provided.',
@@ -128,15 +128,15 @@ function eventbrite_field_schema() {
     'min' => array(
       'description' => 'The minimum number of tickets per order.',
       'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
+      'unsigned' => FALSE,
+      'not null' => FALSE,
       'default' => 1,
     ),
     'max' => array(
       'description' => 'The maximum number of tickets per order.',
       'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
+      'unsigned' => FALSE,
+      'not null' => FALSE,
       'default' => 0,
     ),
     'hide' => array(
@@ -145,7 +145,7 @@ function eventbrite_field_schema() {
       'size' => 'tiny',
       'not null' => TRUE,
       'default' => 0,
-    )
+    ),
   );
 
   return array(

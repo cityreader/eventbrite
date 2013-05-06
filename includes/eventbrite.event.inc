@@ -115,7 +115,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => $entity->start_date,
+    '#default_value' => $entity->start_date ? $entity->start_date : eventbrite_default_date(),
     '#required' => TRUE,
   );
 
@@ -128,7 +128,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => $entity->end_date,
+    '#default_value' => $entity->end_date ? $entity->end_date : eventbrite_default_date(),
     '#required' => TRUE,
   );
 
@@ -195,6 +195,13 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
   return $form;
 }
 
+function eventbrite_default_date() {
+  $date = date_now();
+  date_modify($date, '+1 month');
+
+  return date_format($date, 'd/m/y H:i');
+}
+
 /**
  * Form API submit callback for the Eventbrite event edit form.
  *
@@ -208,8 +215,7 @@ function eventbrite_event_form_validate($form, &$form_state) {
   elseif ($form_state['triggering_element']['#value'] == $form['actions']['submit']['#value']) {
     $form_state['values']['status'] = 1;
   }
-  
-  
+
 }
 
 /**
@@ -223,8 +229,6 @@ function eventbrite_event_form_submit($form, &$form_state) {
  
   if (TRUE) {
 
-    dpm($form_state);
-    
   }
   
   $eventbrite_event->save();
