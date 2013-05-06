@@ -110,6 +110,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#title' => t('Date & Time'),
     '#type' => 'fieldset',
     '#parents' => array($field['field_name'], $langcode, $delta),
+    '#element_validate' => array('eventbrite_date_combo_validate'),
   );
   
   $element['date']['start_date'] = array(
@@ -120,7 +121,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => isset($item['start_date']) ? $item['start_date'] : '',
+    '#default_value' => isset($item['start_date']) ? $item['start_date'] : eventbrite_default_date(),
   );
 
   $element['date']['end_date'] = array(
@@ -131,7 +132,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => isset($item['end_date']) ? $item['end_date'] : '',
+    '#default_value' => isset($item['end_date']) ? $item['end_date'] : eventbrite_default_date(),
   );
   
   $element['include_fee'] = array(
@@ -231,7 +232,10 @@ function eventbrite_field_validate($entity_type, $entity, $field, $instance, $la
   foreach ($items as $delta => $item) {
 
     // if (!empty($item['name']) && !isset($options[$item['value']])) {
-
+        // $errors[$field['field_name']][$langcode][$delta][] = array(
+          // 'error' => 'text_max_length',
+          // 'message' => t('%name: the value may not be longer than %max characters.', array('%name' => $instance['label'], '%max' => $field['settings']['max_length'])),
+        // );
     // }
   }
   return $items;
@@ -414,4 +418,47 @@ function eventbrite_field_formatter_settings_summary($field, $instance, $view_mo
 function eventbrite_field_widget_error($element, $error, $form, &$form_state) {
   form_error($element, $error['message']);
 }
+
+function eventbrite_date_combo_validate($element, &$form_state) {
+  dpm($element);
+  dpm($form_state);
+
+  form_error($element, 'test');
+  
+  $input_exists = NULL;
+  $datetime = drupal_array_get_nested_value($form_state['values'], $element['start_date']['#parents'], $input_exists);
+  $from_date = new DateObject($datetime, $element['start_date']['#date_timezone'],  date_popup_date_format($element['start_date']));
+  
+  $datetime = drupal_array_get_nested_value($form_state['values'], $element['end_date']['#parents'], $input_exists);
+  $to_date = new DateObject($datetime, $element['end_date']['#date_timezone'],  date_popup_date_format($element['end_date']));
+
+  
+  dpm($from_date);
+  dpm($to_date);
+}
+
+/**
+ * Compare two dates.
+ *
+ * @param mixed $date1
+ *   the starting date
+ * @param mixed $date2
+ *   the ending date
+ * @param string $type
+ *   the type of dates provided:
+ *   DATE_OBJECT, DATE_DATETIME, DATE_ISO, DATE_UNIX, DATE_ARRAY
+ * @return
+ *   -1 if the first date is lower than the second, 0 if they are equal,
+ *   and 1 if the second is lower.
+ */
+function eventbrite_date_compare($date1_in, $date2_in, $type = DATE_OBJECT) {
+  // Create cloned objects to make sure original dates are not modified.
+  $date1 = drupal_clone(date_convert($date1_in, $type, DATE_OBJECT));
+  $date2 = drupal_clone(date_convert($date2_in, $type, DATE_OBJECT));
+  $diff = date_format($date1, 'U') - date_format($date2, 'U');
+  return ($diff > 0 ? 1 : ($diff < 0 ? -1 : 0));
+}
+
+
+
 

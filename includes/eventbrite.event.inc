@@ -104,6 +104,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'fieldset',
     '#validator' => array('eventbrite_date_combo_validate'),
     '#weight' => -18,
+    '#element_validate' => array('eventbrite_date_combo_validate'),
   );
 
   $form['date']['start_date'] = array(
@@ -115,7 +116,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => $entity->start_date ? $entity->start_date : eventbrite_default_date(),
+    '#default_value' => ($entity->start_date ? $entity->start_date : eventbrite_default_date()),
     '#required' => TRUE,
   );
 
@@ -199,7 +200,7 @@ function eventbrite_default_date() {
   $date = date_now();
   date_modify($date, '+1 month');
 
-  return date_format($date, 'd/m/y H:i');
+  return date_format($date, 'Y-m-d H') . ':00:00';
 }
 
 /**
