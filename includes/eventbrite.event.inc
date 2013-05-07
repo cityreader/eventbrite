@@ -113,7 +113,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => $entity->start_date ? $entity->start_date : eventbrite_default_date(array('month' => 1)),
@@ -126,7 +126,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => $entity->end_date ? $entity->end_date : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
@@ -193,6 +193,8 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#weight' => 11,
   );
 
+  $form['#validate'][] = 'eventbrite_sale_end_date_validate';
+  
   return $form;
 }
 

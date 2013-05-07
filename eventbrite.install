@@ -62,7 +62,6 @@ function eventbrite_field_schema() {
     'ticket_id' => array(
       'description' => 'The ticket type ID for external use.',
       'type' => 'int',
-      'size' => 'tiny',
       'unsigned' => TRUE,
       'not null' => FALSE,
       'default' => 0,
@@ -96,7 +95,7 @@ function eventbrite_field_schema() {
     'quantity_available' => array(
       'description' => '',
       'type' => 'int',
-      'unsigned' => FALSE,
+      'unsigned' => TRUE,
       'not null' => FALSE,
       'default' => 0,
     ),

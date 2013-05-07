@@ -1,6 +1,6 @@
 <?php
 
-function eventbrite_date_combo_validate($element, &$form_state) { 
+function eventbrite_date_combo_validate($element, &$form_state) {
   $from_date_in = drupal_array_get_nested_value($form_state['values'], $element['start_date']['#parents']);
   $to_date_in = drupal_array_get_nested_value($form_state['values'], $element['end_date']['#parents']);
   
@@ -26,7 +26,30 @@ function eventbrite_date_combo_validate($element, &$form_state) {
       form_set_error($error_field, $message);
     }
   }
+}
 
+function eventbrite_sale_end_date_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  $timezone = date_default_timezone();
+  
+  $langcode = LANGUAGE_NONE;
+  if ($values['tickets'][$langcode]) {
+    $end_date = new DateObject($values['end_date'], $timezone);
+    
+    foreach($values['tickets'][$langcode] as $delta=>$ticket) {
+      if (!is_numeric($delta)) {
+        continue;
+      }
+      
+      $sale_end_date = new DateObject($ticket['end_date'], $timezone);
+
+      if (eventbrite_date_compare($end_date, $sale_end_date) === -1) {
+        $error_field = implode('][', array('tickets', $langcode, $delta, 'end_date'));
+        $message = t('The End date must be greater than the Start date.');
+        form_set_error($error_field, t('End sales date greater than Event’s Ending date.'));
+      }
+    }
+  }
 }
 
 /**

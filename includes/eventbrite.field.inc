@@ -123,7 +123,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['start_date']) ? $item['start_date'] : eventbrite_default_date(array('month' => 1)),
@@ -134,7 +134,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#type' => 'date_popup',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i',
+    '#date_format' => 'd/m/Y - H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['end_date']) ? $item['end_date'] : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
@@ -150,20 +150,20 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#default_value' => isset($item['include_fee']) ? $item['include_fee'] : 0,
   );
 
-  $element['tickets_per_order'] = array(
+  $element['order_limit'] = array(
     '#title' => t('Tickets permitted per order'),
     '#type' => 'fieldset',
     '#parents' => array($field['field_name'], $langcode, $delta),
   );
 
-  $element['tickets_per_order']['min'] = array(
+  $element['order_limit']['min'] = array(
     '#title' => t('Minimum'),
     '#description' => t('The minimum number of tickets per order.'),
     '#type' => 'textfield',
     '#default_value' => isset($item['min']) ? $item['min'] : 1,
   );
 
-  $element['tickets_per_order']['max'] = array(
+  $element['order_limit']['max'] = array(
     '#title' => t('Maximum'),
     '#description' => t('The maximum number of tickets per order.'),
     '#type' => 'textfield',
@@ -177,17 +177,20 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#default_value' => isset($item['hide']) ? $item['hide'] : 0,
   );
   
+  $parents = array($field['field_name'], $langcode, $delta);
+  
   $element['remove_button'] = array(
-    '#name' => implode('_', array($field['field_name'], $langcode, $delta)) . '_remove_ticket',
+    '#name' => implode('_', $parents) . '_remove_button',
+    '#delta' => $delta,
     '#type' => 'submit',
     '#value' => t('Remove'),
     '#validate' => array(),
-    '#submit' => array('eventbrite_field_ticket_submit'),
-    '#limit_validation_errors' => array(array($field['field_name'], $langcode)),
-    // '#ajax' => array(
-      // 'path' => 'eventbrite/ajax/remove_ticket/' . implode('/', array($field['field_name'], $langcode)),
-      // 'wrapper' => 'tickets-add-more-wrapper',
-    // ),
+    '#submit' => array('eventbrite_ticket_remove_submit'),
+    '#limit_validation_errors' => array(),
+    '#ajax' => array(
+      'path' => 'eventbrite/ajax',
+      'wrapper' => 'tickets-add-more-wrapper',
+    ),
   );
   
   // drupal_add_js(drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js');
@@ -444,88 +447,118 @@ function eventbrite_field_widget_error($element, $error, $form, &$form_state) {
   form_error($element, $error['message']);
 }
 
-function eventbrite_field_ajax() {
-  $form_parents = func_get_args();
-  $action = (string) array_shift($form_parents);
-  
-  $valid_actions = array('remove_ticket');
-
-  if (empty($_POST['form_build_id']) || !in_array($action, $valid_actions)) {
-    // Invalid request.
-    drupal_set_message(t('Invalid request'), 'error');
-    $commands = array();
-    $commands[] = ajax_command_replace(NULL, theme('status_messages'));
-    return array('#type' => 'ajax', '#commands' => $commands);
+function eventbrite_ticket_remove_js() {
+  // drupal_html_id() very helpfully ensures that all html IDS are unique
+  // on a page. Unfortunately what it doesn't realize is that the IDs
+  // we are generating are going to replace IDs that already exist, so
+  // this actually works against us.
+  if (isset($_POST['ajax_html_ids'])) {
+    unset($_POST['ajax_html_ids']);
   }
-
+    
   list($form, $form_state) = ajax_get_form();
-
-  if (!$form) {
-    // Invalid form_build_id.
-    drupal_set_message(t('An unrecoverable error occurred. Use of this form has expired. Try reloading the page and submitting again.'), 'error');
-    $commands = array();
-    $commands[] = ajax_command_replace(NULL, theme('status_messages'));
-    return array('#type' => 'ajax', '#commands' => $commands);
-  }
-
-  // Get the current element and count the number of files.
-  $current_element = $form;
-  foreach ($form_parents as $parent) {
-    $current_element = $current_element[$parent];
-  }
-  // $current_file_count = isset($current_element['#file_upload_delta']) ? $current_element['#file_upload_delta'] : 0;
-
-  // Process user input. $form and $form_state are modified in the process.
   drupal_process_form($form['#form_id'], $form, $form_state);
 
-  // Retrieve the element to be rendered.
-  foreach ($form_parents as $parent) {
-    $form = $form[$parent];
+  // Get the information on what we're removing.
+  $button = $form_state['triggering_element'];
+  // Go two levels up in the form, to the whole widget.
+  $element = drupal_array_get_nested_value($form, array_slice($button['#array_parents'], 0, -3));
+  // Now send back the proper AJAX command to replace it.
+  $return = array(
+    '#type' => 'ajax',
+    '#commands' => array(
+      ajax_command_replace('#' . $element['#id'], drupal_render($element))
+    ),
+  );
+
+  // Because we're doing this ourselves, messages aren't automatic. We have
+  // to add them.
+  $messages = theme('status_messages');
+  if ($messages) {
+    $return['#commands'][] = ajax_command_prepend('#' . $element['#id'], $messages);
   }
 
-  $output = theme('status_messages') . drupal_render($form);
-  $js = drupal_add_js();
-  $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
-
-  $commands = array();
-  $commands[] = ajax_command_replace(NULL, $output, $settings);
-  return array('#type' => 'ajax', '#commands' => $commands);
+  return $return;
 }
 
-function eventbrite_field_ticket_submit($form, &$form_state) {
-  // Determine whether it was the upload or the remove button that was clicked,
-  // and set $element to the managed_file element that contains that button.
-  $parents = $form_state['triggering_element']['#array_parents'];
-  $button_key = array_pop($parents);
-  $element = drupal_array_get_nested_value($form, $parents);
-dpm($form_state);
-dpm($form);
-dpm($element);
-  // No action is needed here for the upload button, because all file uploads on
-  // the form are processed by file_managed_file_value() regardless of which
-  // button was clicked. Action is needed here for the remove button, because we
-  // only remove a file in response to its remove button being clicked.
-  if ($button_key == 'remove_button') {
-    // Update both $form_state['values'] and $form_state['input'] to reflect
-    // that the file has been removed, so that the form is rebuilt correctly.
-    // $form_state['values'] must be updated in case additional submit handlers
-    // run, and for form building functions that run during the rebuild, such as
-    // when the managed_file element is part of a field widget.
-    // $form_state['input'] must be updated so that file_managed_file_value()
-    // has correct information during the rebuild.
-    $values_element = $element['name'];
-    dpm($values_element);
-    form_set_value($values_element, '', $form_state);
-    drupal_array_set_nested_value($form_state['input'], $values_element['#parents'], '');
+function eventbrite_ticket_remove_submit($form, &$form_state) {
+  $button = $form_state['triggering_element'];
+  $delta = $button['#delta'];
 
+  // Where in the form we'll find the parent element.
+  $address = array_slice($button['#array_parents'], 0, -2);
+  
+  // Go one level up in the form, to the widgets container.
+  $parent_element = drupal_array_get_nested_value($form, $address);
+  $field_name = $parent_element['#field_name'];
+  $langcode = $parent_element['#language'];
+  $parents = $parent_element['#field_parents'];
+
+  $field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);
+
+  // Go ahead and renumber everything from our delta to the last
+  // item down one. This will overwrite the item being removed.
+  for ($i = $delta; $i < $field_state['items_count']; $i++) {
+    $old_element_address = array_merge($address, array($i + 1));
+    $new_element_address = array_merge($address, array($i));
+
+    $moving_element = drupal_array_get_nested_value($form, $old_element_address);
+    $moving_element_value = drupal_array_get_nested_value($form_state['values'], $old_element_address);
+    $moving_element_input = drupal_array_get_nested_value($form_state['input'], $old_element_address);
+
+    // Tell the element where it's being moved to.
+    $moving_element['#parents'] = $new_element_address;
+
+    // Move the element around.
+    form_set_value($moving_element, $moving_element_value, $form_state);
+    drupal_array_set_nested_value($form_state['input'], $moving_element['#parents'], $moving_element_input);
+
+    // Move the entity in our saved state.
+    //$field_state['entity'][$i] = $field_state['entity'][$i + 1];
   }
 
-  // Set the form to rebuild so that $form is correctly updated in response to
-  // processing the file removal. Since this function did not change $form_state
-  // if the upload button was clicked, a rebuild isn't necessary in that
-  // situation and setting $form_state['redirect'] to FALSE would suffice.
-  // However, we choose to always rebuild, to keep the form processing workflow
-  // consistent between the two buttons.
+  // For the final item there is nothing to move into its place, so remove it.
+  $i = $field_state['items_count'];
+  $removed_element_address = array_merge($address, array($i));
+  $removed_element = drupal_array_get_nested_value($form, $removed_element_address);
+  form_set_value($removed_element, NULL, $form_state);
+  drupal_array_set_nested_value($form_state['input'], $removed_element['#parents'], NULL);
+
+  // Replace the deleted entity with an empty one. This helps to ensure that
+  // trying to add a new entity won't ressurect a deleted entity from the
+  // trash bin.
+//  $field_state['entity'][$field_state['items_count']] = entity_create('field_collection_item', array('field_name' => $field_name));
+
+  // Then remove the last item. But we must not go negative.
+  if ($field_state['items_count'] > 0) {
+    $field_state['items_count']--;
+  }
+
+  // Fix the weights. Field UI lets the weights be in a range of
+  // (-1 * item_count) to (item_count). This means that when we remove one,
+  // the range shrinks; weights outside of that range then get set to
+  // the first item in the select by the browser, floating them to the top.
+  // We use a brute force method because we lost weights on both ends
+  // and if the user has moved things around, we have to cascade because
+  // if I have items weight weights 3 and 4, and I change 4 to 3 but leave
+  // the 3, the order of the two 3s now is undefined and may not match what
+  // the user had selected.
+  $input = drupal_array_get_nested_value($form_state['input'], $address);
+  // Sort by weight
+  uasort($input, '_field_sort_items_helper');
+
+  // Reweight everything in the correct order.
+  $weight = -1 * $field_state['items_count'];
+  foreach ($input as $key => $item) {
+    if ($item) {
+      $input[$key]['_weight'] = $weight++;
+    }
+  }
+
+  drupal_array_set_nested_value($form_state['input'], $address, $input);
+
+  field_form_set_state($parents, $field_name, $langcode, $form_state, $field_state);
+
   $form_state['rebuild'] = TRUE;
 }
 

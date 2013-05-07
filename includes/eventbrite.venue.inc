@@ -40,6 +40,7 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
     $header[0] = t('Venue Name');
     $extra = array(
       t('Address'),
+      t('Status'),
     );
     array_splice($header, 1, 0, $extra);
     return $header;
@@ -72,6 +73,9 @@ class EventbriteVenueUIController extends EntityDefaultUIController {
     }
     $extra[] = array(
       'data'=> $address,
+    );
+    $extra[] = array(
+      'data'=> $entity->status ? t('Active') : t('Inactive'),
     );
     array_splice($row, 1, 0, $extra);
     
@@ -149,6 +153,13 @@ function eventbrite_venue_form($form, &$form_state, $entity, $op = 'edit') {
     '#weight' => 6,
   );
 
+  $form['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Status'),
+    '#default_value' => $entity->status,
+    '#weight' => 7,
+  );
+  
 //  field_attach_form('eventbrite_venue', $entity, $form, $form_state);
 
   if ($op == 'add') {
