@@ -7,6 +7,7 @@
 
 define('EVENTBRITE_URL_ORG', 'http://www.eventbrite.com/org');
 
+module_load_include('inc', 'eventbrite', 'includes/eventbrite.date');
 module_load_include('inc', 'eventbrite', 'includes/eventbrite.field');
 
 /**
@@ -35,12 +36,8 @@ function eventbrite_init() {
   drupal_add_css(drupal_get_path('module', 'eventbrite') . '/eventbrite.css');
 }
 
-/*
+/**
  * Implements of hook_menu().
- *
- *
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
  */
 function eventbrite_menu() {
   //Field API autocomplete
@@ -89,7 +86,6 @@ function eventbrite_menu() {
  * Implements hook_entity_info().
  */
 function eventbrite_entity_info() {
-
   $entities['eventbrite_event'] = array(
     'label' => t('Event'),
     'entity class' => 'EventbriteEvent',
@@ -235,7 +231,6 @@ function eventbrite_entity_info_alter(&$info) {
       );
        
       $field = field_create_field($field);
-      
     }
 
     if (empty($instance)) {
@@ -713,7 +708,7 @@ class EventbriteEvent extends Entity {
   public $status;
   public $created;
   public $modified;
-
+  public $tickets;
 
   public function defaultLabel() {
     return $this->title;
@@ -736,16 +731,25 @@ class EventbriteEvent extends Entity {
         'description' => $this->description,
         'start_date' => $this->start_date,
         'end_date' => $this->end_date,
-        'personalized_url' => $this->personalized_url,
-        'venue_id' => $this->venue_id,
         'organizer_id' => $this->organizer_id,
-        'capacity' => $this->capacity,
         'status' => $this->status,
         'modified' => REQUEST_TIME,
       );
 
       if (!empty($this->is_new)) {
         $params['created'] = $params['modified'] = REQUEST_TIME;
+      }
+      
+      if ($this->venue_id) {
+        $params['venue_id'] = $this->venue_id;
+      }
+      
+      if ($this->capacity) {
+        $params['capacity'] = $this->capacity;
+      }
+
+      if ($this->personalized_url) {
+        $params['personalized_url'] = $this->personalized_url;
       }
 
       $params['status'] = $this->status ? 'live' : 'draft';
@@ -755,7 +759,7 @@ class EventbriteEvent extends Entity {
       if ($this->event_id) {
         $params['id'] = $this->event_id;
       }
-
+dpm($params);
       $api_callback = !empty($this->is_new) && $this->venue_id ? 'event_new' : 'event_update';
 
       // $result = eventbrite_save($api_callback, $params);
@@ -772,6 +776,41 @@ class EventbriteEvent extends Entity {
       }
 
 //      $this->event_id = $result->process->id;
+
+      foreach ($this->tickets[LANGUAGE_NONE] as $delta=>$ticket) {
+        $params = array(
+          'title' => $ticket['is_donation'],
+          'name' => $ticket['name'],
+          'description' => $ticket['description'],
+          'quantity_available' => $ticket['quantity_available'],
+          'start_date' => $ticket['start_date'] . ':00',
+          'end_date' => $ticket['end_date'] . ':00',
+          'include_fee' => $ticket['include_fee'],
+          'min' => $ticket['min'],
+          'hide ' => $ticket['hide'],
+        );
+
+        if ($ticket['max'] > 0) {
+          $params['max'] = $ticket['max'];
+        }
+        
+        if ($ticket['ticket_id'] > 0) {
+          $params['ticket_id'] = $ticket['ticket_id'];
+          
+          $api_callback = 'ticket_update';
+        }
+        else {
+          $api_callback = 'ticket_new';
+        }
+        dpm($params);
+        // $result = eventbrite_save($api_callback, $params);
+        
+        // if (!$result || $result->process->status !== 'OK') {
+          // return;
+        // }
+      
+//        $this->$tickets[LANGUAGE_NONE][$delta]['ticket_id'] = $result->process->id;
+      }
 
 //      dpm($result);
     }

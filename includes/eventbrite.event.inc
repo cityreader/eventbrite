@@ -116,7 +116,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => ($entity->start_date ? $entity->start_date : eventbrite_default_date()),
+    '#default_value' => $entity->start_date ? $entity->start_date : eventbrite_default_date(array('month' => 1)),
     '#required' => TRUE,
   );
 
@@ -129,7 +129,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#date_format' => 'd/m/Y - H:i',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => $entity->end_date ? $entity->end_date : eventbrite_default_date(),
+    '#default_value' => $entity->end_date ? $entity->end_date : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
     '#required' => TRUE,
   );
 
@@ -170,7 +170,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
   $form['capacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Capacity'),
-    '#default_value' => $entity->capacity,
+    '#default_value' => $entity->capacity ? $entity->capacity : '',
     '#description' => t('The maximum number of people who can attend the event.'),
     '#weight' => -13,
   );
@@ -194,13 +194,6 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
   );
 
   return $form;
-}
-
-function eventbrite_default_date() {
-  $date = date_now();
-  date_modify($date, '+1 month');
-
-  return date_format($date, 'Y-m-d H') . ':00:00';
 }
 
 /**

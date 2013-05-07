@@ -10,6 +10,7 @@ dependencies[] = date_popup
 files[] = includes/eventbrite.admin.inc
 files[] = eventbrite.api.inc
 files[] = eventbrite.common.inc
+files[] = includes/eventbrite.date.inc
 files[] = includes/eventbrite.field.inc
 files[] = includes/eventbrite.event.inc
 files[] = includes/eventbrite.organizer.inc
