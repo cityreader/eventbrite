@@ -177,28 +177,28 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#default_value' => isset($item['hide']) ? $item['hide'] : 0,
   );
   
-  // $element['remove_button'] = array(
-    // '#name' => implode('_', array($field['field_name'], $langcode, $delta)) . '_remove_button',
-    // '#type' => 'submit',
-    // '#value' => t('Remove'),
-    // '#validate' => array(),
-    // '#submit' => array('eventbrite_field_ticket_submit'),
-    // '#limit_validation_errors' => array(array($field['field_name'], $langcode)),
-    // '#ajax' => array(
-      // 'path' => 'file/ajax/' . implode('/', array($field['field_name'], $langcode)) . '/' . $form['form_build_id']['#value'],
-      // 'wrapper' => $element['#id'] . '-ajax-wrapper',
-    // ),
-  // );
-  
-  drupal_add_js(drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js');
-  
   $element['remove_button'] = array(
-    '#type' => 'markup',
-    '#markup' => '<a href="#" class="form-submit form-submit-remove eventbrite_ticket_remove">Remove</a>',
-    // '#attached' => array(
-      // 'js' => drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js',
+    '#name' => implode('_', array($field['field_name'], $langcode, $delta)) . '_remove_ticket',
+    '#type' => 'submit',
+    '#value' => t('Remove'),
+    '#validate' => array(),
+    '#submit' => array('eventbrite_field_ticket_submit'),
+    '#limit_validation_errors' => array(array($field['field_name'], $langcode)),
+    // '#ajax' => array(
+      // 'path' => 'eventbrite/ajax/remove_ticket/' . implode('/', array($field['field_name'], $langcode)),
+      // 'wrapper' => 'tickets-add-more-wrapper',
     // ),
   );
+  
+  // drupal_add_js(drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js');
+//   
+  // $element['remove_button'] = array(
+    // '#type' => 'markup',
+    // '#markup' => '<a href="#" class="form-submit form-submit-remove eventbrite_ticket_remove">Remove</a>',
+    // // '#attached' => array(
+      // // 'js' => drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js',
+    // // ),
+  // );
   
   return $element;
 }
@@ -206,7 +206,7 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
 /**
  * Implements hook_field_formatter_info().
  */
-function hook_field_formatter_info() {
+function eventbrite_field_formatter_info() {
   return array(
     'eventbrite_ticket_formatter' => array(
       'label' => t('Default'),
@@ -446,11 +446,13 @@ function eventbrite_field_widget_error($element, $error, $form, &$form_state) {
 
 function eventbrite_field_ajax() {
   $form_parents = func_get_args();
-  $form_build_id = (string) array_pop($form_parents);
+  $action = (string) array_shift($form_parents);
+  
+  $valid_actions = array('remove_ticket');
 
-  if (empty($_POST['form_build_id']) || $form_build_id != $_POST['form_build_id']) {
+  if (empty($_POST['form_build_id']) || !in_array($action, $valid_actions)) {
     // Invalid request.
-    drupal_set_message(t('Ticket error'), 'error');
+    drupal_set_message(t('Invalid request'), 'error');
     $commands = array();
     $commands[] = ajax_command_replace(NULL, theme('status_messages'));
     return array('#type' => 'ajax', '#commands' => $commands);
@@ -481,15 +483,6 @@ function eventbrite_field_ajax() {
     $form = $form[$parent];
   }
 
-  // Add the special Ajax class if a new file was added.
-  if (isset($form['#file_upload_delta']) && $current_file_count < $form['#file_upload_delta']) {
-    $form[$current_file_count]['#attributes']['class'][] = 'ajax-new-content';
-  }
-  // Otherwise just add the new content class on a placeholder.
-  else {
-    $form['#suffix'] .= '<span class="ajax-new-content"></span>';
-  }
-
   $output = theme('status_messages') . drupal_render($form);
   $js = drupal_add_js();
   $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
@@ -505,7 +498,9 @@ function eventbrite_field_ticket_submit($form, &$form_state) {
   $parents = $form_state['triggering_element']['#array_parents'];
   $button_key = array_pop($parents);
   $element = drupal_array_get_nested_value($form, $parents);
-
+dpm($form_state);
+dpm($form);
+dpm($element);
   // No action is needed here for the upload button, because all file uploads on
   // the form are processed by file_managed_file_value() regardless of which
   // button was clicked. Action is needed here for the remove button, because we
@@ -518,9 +513,11 @@ function eventbrite_field_ticket_submit($form, &$form_state) {
     // when the managed_file element is part of a field widget.
     // $form_state['input'] must be updated so that file_managed_file_value()
     // has correct information during the rebuild.
-    $values_element = $element['#extended'] ? $element['fid'] : $element;
-    form_set_value($values_element, NULL, $form_state);
-    drupal_array_set_nested_value($form_state['input'], $values_element['#parents'], NULL);
+    $values_element = $element['name'];
+    dpm($values_element);
+    form_set_value($values_element, '', $form_state);
+    drupal_array_set_nested_value($form_state['input'], $values_element['#parents'], '');
+
   }
 
   // Set the form to rebuild so that $form is correctly updated in response to
