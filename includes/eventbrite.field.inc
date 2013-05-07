@@ -176,7 +176,30 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     '#type' => 'checkbox',
     '#default_value' => isset($item['hide']) ? $item['hide'] : 0,
   );
-
+  
+  // $element['remove_button'] = array(
+    // '#name' => implode('_', array($field['field_name'], $langcode, $delta)) . '_remove_button',
+    // '#type' => 'submit',
+    // '#value' => t('Remove'),
+    // '#validate' => array(),
+    // '#submit' => array('eventbrite_field_ticket_submit'),
+    // '#limit_validation_errors' => array(array($field['field_name'], $langcode)),
+    // '#ajax' => array(
+      // 'path' => 'file/ajax/' . implode('/', array($field['field_name'], $langcode)) . '/' . $form['form_build_id']['#value'],
+      // 'wrapper' => $element['#id'] . '-ajax-wrapper',
+    // ),
+  // );
+  
+  drupal_add_js(drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js');
+  
+  $element['remove_button'] = array(
+    '#type' => 'markup',
+    '#markup' => '<a href="#" class="form-submit form-submit-remove eventbrite_ticket_remove">Remove</a>',
+    // '#attached' => array(
+      // 'js' => drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js',
+    // ),
+  );
+  
   return $element;
 }
 
@@ -421,6 +444,92 @@ function eventbrite_field_widget_error($element, $error, $form, &$form_state) {
   form_error($element, $error['message']);
 }
 
+function eventbrite_field_ajax() {
+  $form_parents = func_get_args();
+  $form_build_id = (string) array_pop($form_parents);
 
+  if (empty($_POST['form_build_id']) || $form_build_id != $_POST['form_build_id']) {
+    // Invalid request.
+    drupal_set_message(t('Ticket error'), 'error');
+    $commands = array();
+    $commands[] = ajax_command_replace(NULL, theme('status_messages'));
+    return array('#type' => 'ajax', '#commands' => $commands);
+  }
+
+  list($form, $form_state) = ajax_get_form();
+
+  if (!$form) {
+    // Invalid form_build_id.
+    drupal_set_message(t('An unrecoverable error occurred. Use of this form has expired. Try reloading the page and submitting again.'), 'error');
+    $commands = array();
+    $commands[] = ajax_command_replace(NULL, theme('status_messages'));
+    return array('#type' => 'ajax', '#commands' => $commands);
+  }
+
+  // Get the current element and count the number of files.
+  $current_element = $form;
+  foreach ($form_parents as $parent) {
+    $current_element = $current_element[$parent];
+  }
+  // $current_file_count = isset($current_element['#file_upload_delta']) ? $current_element['#file_upload_delta'] : 0;
+
+  // Process user input. $form and $form_state are modified in the process.
+  drupal_process_form($form['#form_id'], $form, $form_state);
+
+  // Retrieve the element to be rendered.
+  foreach ($form_parents as $parent) {
+    $form = $form[$parent];
+  }
+
+  // Add the special Ajax class if a new file was added.
+  if (isset($form['#file_upload_delta']) && $current_file_count < $form['#file_upload_delta']) {
+    $form[$current_file_count]['#attributes']['class'][] = 'ajax-new-content';
+  }
+  // Otherwise just add the new content class on a placeholder.
+  else {
+    $form['#suffix'] .= '<span class="ajax-new-content"></span>';
+  }
+
+  $output = theme('status_messages') . drupal_render($form);
+  $js = drupal_add_js();
+  $settings = call_user_func_array('array_merge_recursive', $js['settings']['data']);
+
+  $commands = array();
+  $commands[] = ajax_command_replace(NULL, $output, $settings);
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+function eventbrite_field_ticket_submit($form, &$form_state) {
+  // Determine whether it was the upload or the remove button that was clicked,
+  // and set $element to the managed_file element that contains that button.
+  $parents = $form_state['triggering_element']['#array_parents'];
+  $button_key = array_pop($parents);
+  $element = drupal_array_get_nested_value($form, $parents);
+
+  // No action is needed here for the upload button, because all file uploads on
+  // the form are processed by file_managed_file_value() regardless of which
+  // button was clicked. Action is needed here for the remove button, because we
+  // only remove a file in response to its remove button being clicked.
+  if ($button_key == 'remove_button') {
+    // Update both $form_state['values'] and $form_state['input'] to reflect
+    // that the file has been removed, so that the form is rebuilt correctly.
+    // $form_state['values'] must be updated in case additional submit handlers
+    // run, and for form building functions that run during the rebuild, such as
+    // when the managed_file element is part of a field widget.
+    // $form_state['input'] must be updated so that file_managed_file_value()
+    // has correct information during the rebuild.
+    $values_element = $element['#extended'] ? $element['fid'] : $element;
+    form_set_value($values_element, NULL, $form_state);
+    drupal_array_set_nested_value($form_state['input'], $values_element['#parents'], NULL);
+  }
+
+  // Set the form to rebuild so that $form is correctly updated in response to
+  // processing the file removal. Since this function did not change $form_state
+  // if the upload button was clicked, a rebuild isn't necessary in that
+  // situation and setting $form_state['redirect'] to FALSE would suffice.
+  // However, we choose to always rebuild, to keep the form processing workflow
+  // consistent between the two buttons.
+  $form_state['rebuild'] = TRUE;
+}
 
 

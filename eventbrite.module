@@ -40,6 +40,16 @@ function eventbrite_init() {
  * Implements of hook_menu().
  */
 function eventbrite_menu() {
+  $items['eventbrite/ajax'] = array(
+    'page callback' => 'eventbrite_field_ajax',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments' => array('administer eventbrite settings'),
+    'theme callback' => 'ajax_base_page_theme',
+    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    'file' => 'eventbrite.field.inc',    
+    'type' => MENU_CALLBACK,
+  );
+  
   //Field API autocomplete
   $items['eventbrite/autocomplete'] = array(
     'title' => 'Time zone field autocomplete',
@@ -81,6 +91,31 @@ function eventbrite_menu() {
 
   return $items;
 }
+
+// /**
+ // * Implements hook_element_info().
+ // *
+ // * The managed file element may be used anywhere in Drupal.
+ // */
+// function eventbrite_element_info() {
+  // // $file_path = drupal_get_path('module', 'file');
+  // $types['eventbrite_ticket'] = array(
+    // '#input' => TRUE,
+    // '#process' => array('eventbrite_field_ticket_process'),
+// //    '#value_callback' => 'eventbrite_field_ticket_value',
+// //    '#element_validate' => array('eventbrite_field_ticket_validate'),
+    // // '#pre_render' => array('file_managed_file_pre_render'),
+    // // '#theme' => 'file_managed_file',
+    // // '#theme_wrappers' => array('form_element'),
+    // '#progress_indicator' => 'throbber',
+    // '#progress_message' => NULL,
+    // // '#attached' => array(
+      // // 'css' => array($file_path . '/file.css'),
+      // // 'js' => array($file_path . '/file.js'),
+    // // ),
+  // );
+  // return $types;
+// }
 
 /**
  * Implements hook_entity_info().
