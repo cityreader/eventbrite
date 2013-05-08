@@ -552,4 +552,3 @@ function eventbrite_ticket_remove_submit($form, &$form_state) {
   $form_state['rebuild'] = TRUE;
 }
 
-

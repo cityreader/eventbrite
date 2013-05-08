@@ -366,11 +366,14 @@ function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
  * Implements hook_theme().
  */
 function eventbrite_theme() {
+  $path = drupal_get_path('module', 'eventbrite');
   return array(
-//    'eventbrite_venue_list_form' => array(
-//      'render element' => 'form',
-//      'file' => 'eventbrite.venue.inc',
-//    ),
+   'eventbrite_event' => array(
+     'render element' => 'elements',
+     'template' => 'eventbrite_event',
+     'path' => $path . '/includes',
+     'file' => 'eventbrite.theme.inc',
+   ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
 //      'file' => 'eventbrite.organizer.inc',
@@ -1199,4 +1202,36 @@ function eventbrite_get_options($type) {
   return $cache[$type];
 }
 
+/**
+ * Implements hook_field_extra_fields()
+ */
+function eventbrite_field_extra_fields() {
+  $extra['eventbrite_event']['eventbrite_event'] = array(
+    'form' => array(
+      'description' => array(
+        'label' => t('Event Details'),
+        'description' => t('Event entity element'),
+        'weight' => -4,
+      ),
+      'tickets' => array(
+        'label' => t('Ticket Information'),
+        'description' => t('Event entity element'),
+        'weight' => -3,
+      ),
+    ),
+    'display' => array(
+      'description' => array(
+        'label' => t('Event Details'),
+        'description' => t('Event entity element'),
+        'weight' => 0,
+      ),
+      'tickets' => array(
+        'label' => t('Ticket Information'),
+        'description' => t('Event entity element'),
+        'weight' => 0,
+      ),
+    )
+  );
 
+  return $extra;
+}
