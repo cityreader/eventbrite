@@ -193,16 +193,6 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
     ),
   );
   
-  // drupal_add_js(drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js');
-//   
-  // $element['remove_button'] = array(
-    // '#type' => 'markup',
-    // '#markup' => '<a href="#" class="form-submit form-submit-remove eventbrite_ticket_remove">Remove</a>',
-    // // '#attached' => array(
-      // // 'js' => drupal_get_path('module', 'eventbrite') . '/js/eventbrite.ticket.js',
-    // // ),
-  // );
-  
   return $element;
 }
 

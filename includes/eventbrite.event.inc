@@ -16,6 +16,23 @@ class EventbriteEventUIController extends EntityDefaultUIController {
   public function hook_menu() {
     $items = parent::hook_menu();
     $items[$this->path]['type'] = MENU_LOCAL_TASK;
+
+    $eventbrite_event_uri = eventbrite_event_uri();
+    $id_count = count(explode('/', $eventbrite_event_uri));
+    
+    // Menu item for operations like revert and delete.
+    $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
+      'title' => 'Edit',
+      'page callback' => 'entity_ui_get_form',
+      'page arguments' => array($this->entityType, $id_count),
+      'load arguments' => array($this->entityType),
+      'access callback' => 'entity_access',
+      'access arguments' => array('update', $this->entityType, $id_count),
+      'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+      'file' => 'eventbrite.field.inc',
+      'type' => MENU_LOCAL_TASK,
+    );
+
     return $items;
   }
 

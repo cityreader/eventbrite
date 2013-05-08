@@ -9,6 +9,7 @@ define('EVENTBRITE_URL_ORG', 'http://www.eventbrite.com/org');
 
 module_load_include('inc', 'eventbrite', 'includes/eventbrite.date');
 module_load_include('inc', 'eventbrite', 'includes/eventbrite.field');
+module_load_include('inc', 'eventbrite', 'includes/eventbrite.event');
 
 /**
  * Implements hook_libraries_info().
@@ -40,6 +41,9 @@ function eventbrite_init() {
  * Implements of hook_menu().
  */
 function eventbrite_menu() {
+  $eventbrite_event_uri = eventbrite_event_uri();
+  $id_count = count(explode('/', $eventbrite_event_uri));
+
   $items['eventbrite/ajax'] = array(
     'page callback' => 'eventbrite_ticket_remove_js',
     'delivery callback' => 'ajax_deliver',
@@ -48,6 +52,23 @@ function eventbrite_menu() {
     'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
     'file' => 'eventbrite.field.inc',    
     'type' => MENU_CALLBACK,
+  );
+
+  $items[$eventbrite_event_uri . '/%eventbrite_event'] = array(
+    'title callback' => 'eventbrite_event_page_title',
+    'title arguments' => array($id_count),
+    'page callback' => 'eventbrite_event_page_view',
+    'page arguments' => array($id_count),
+    'access arguments' => array('view eventbrite events'),
+    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    'file' => 'eventbrite.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items[$eventbrite_event_uri . '/%eventbrite_event/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
   );
   
   //Field API autocomplete
@@ -303,13 +324,17 @@ function eventbrite_entity_info_alter(&$info) {
  */
 function eventbrite_permission() {
   return array(
+    'view eventbrite events' => array(
+      'title' => t('View eventbrite events'),
+      'description' => t('Allow users to view Eventbrite event content.'),
+    ),
     'administer eventbrite settings' => array(
-      'title' => t('administer eventbrite settings'),
-      'description' => t('Gives full control over the eventbrite admin page'),
+      'title' => t('Administer eventbrite settings'),
+      'description' => t('Gives full control over the eventbrite admin page.'),
     ),
     'administer eventbrite events' => array(
-      'title' => t('administer eventbrite events'),
-      'description' => t('allows users to configure eventbrite events'),
+      'title' => t('Administer eventbrite events'),
+      'description' => t('Allows users to configure eventbrite events.'),
     ),
   );
 }
@@ -745,8 +770,20 @@ class EventbriteEvent extends Entity {
   public $modified;
   public $tickets;
 
+  /**
+   * Override Entity:defaultLabel().
+   */
   public function defaultLabel() {
     return $this->title;
+  }
+
+  /**
+   * Override Entity:defaultUri().
+   */
+  protected function defaultUri() {
+    $eventbrite_event_uri = eventbrite_event_uri();
+    
+    return array('path' => $eventbrite_event_uri . '/' . $this->identifier());
   }
 
   /**
@@ -1120,6 +1157,16 @@ class EventbriteOrganizer extends Entity {
   }
 }
 
+/**
+ * Return event page base link to enable others to modify it
+ */
+function eventbrite_event_uri() {
+  return variable_get('eventbrite_event_uri', 'event');
+}
+
+/**
+ * 
+ */
 function eventbrite_get_options($type) {
   $cache = &drupal_static(__FUNCTION__);
   
