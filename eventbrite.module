@@ -71,6 +71,16 @@ function eventbrite_menu() {
     'weight' => -10,
   );
   
+  // $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
+    // 'title' => 'Edit',
+    // 'page callback' => 'eventbrite_contextual_page_tab',
+    // 'page arguments' => array($id_count, 'eventbrite_event'),
+    // 'access arguments' => array('administer eventbrite events'),
+    // 'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    // 'file' => 'eventbrite.pages.inc',
+    // 'type' => MENU_LOCAL_TASK,
+  // );
+  
   //Field API autocomplete
   $items['eventbrite/autocomplete'] = array(
     'title' => 'Time zone field autocomplete',
@@ -152,7 +162,7 @@ function eventbrite_entity_info() {
       'eventbrite_event' => array(
         'label' => t('Eventbrite Event'),
         'admin' => array(
-          'path' => 'admin/config/services/eventbrite/events',
+          'path' => 'admin/content/events',
           'access arguments' => array('administer eventbrite events'),
         ),
       ),
@@ -175,7 +185,7 @@ function eventbrite_entity_info() {
     'uri callback' => 'entity_class_uri',
     'module' => 'eventbrite',
     'admin ui' => array(
-      'path' => 'admin/config/services/eventbrite/events',
+      'path' => 'admin/content/events',
       'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
       'file' => 'eventbrite.event.inc',
       'controller class' => 'EventbriteEventUIController',
@@ -370,9 +380,9 @@ function eventbrite_theme() {
   return array(
    'eventbrite_event' => array(
      'render element' => 'elements',
-     'template' => 'eventbrite_event',
-     'path' => $path . '/includes',
-     'file' => 'eventbrite.theme.inc',
+     'template' => 'eventbrite-event',
+     'path' => $path . '/themes',
+     'file' => 'theme.inc',
    ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
@@ -1213,11 +1223,11 @@ function eventbrite_field_extra_fields() {
         'description' => t('Event entity element'),
         'weight' => -4,
       ),
-      'tickets' => array(
-        'label' => t('Ticket Information'),
-        'description' => t('Event entity element'),
-        'weight' => -3,
-      ),
+      // 'tickets' => array(
+        // 'label' => t('Ticket Information'),
+        // 'description' => t('Event entity element'),
+        // 'weight' => -3,
+      // ),
     ),
     'display' => array(
       'description' => array(
@@ -1225,11 +1235,11 @@ function eventbrite_field_extra_fields() {
         'description' => t('Event entity element'),
         'weight' => 0,
       ),
-      'tickets' => array(
-        'label' => t('Ticket Information'),
-        'description' => t('Event entity element'),
-        'weight' => 0,
-      ),
+      // 'tickets' => array(
+        // 'label' => t('Ticket Information'),
+        // 'description' => t('Event entity element'),
+        // 'weight' => 0,
+      // ),
     )
   );
 

@@ -67,7 +67,7 @@ function eventbrite_event_view($event, $view_mode = 'full', $langcode = NULL) {
     '#view_mode' => $view_mode,
     '#language' => $langcode,
   );
-
+dpm($build);
   // if (empty($event->in_preview)) {
     // $prefix = '';
     // $is_threaded = isset($event->divs) && variable_get('comment_default_mode_' . $node->type, COMMENT_MODE_THREADED) == COMMENT_MODE_THREADED;
@@ -134,11 +134,11 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   entity_prepare_view('eventbrite_event', array($event->id => $event), $langcode);
   $event->content += field_attach_view('eventbrite_event', $event, $view_mode, $langcode);
 
-  // $event->content['links'] = array(
-    // '#theme' => 'links__comment',
-    // '#pre_render' => array('drupal_pre_render_links'),
-    // '#attributes' => array('class' => array('links', 'inline')),
-  // );
+  $event->content['description'] = array(
+    '#type' => 'markup',
+    '#markup' => check_markup($event->description, $event->description_format),
+  );
+  
   // if (empty($event->in_preview)) {
     // $comment->content['links']['comment'] = array(
       // '#theme' => 'links__comment__comment',
@@ -154,6 +154,7 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   // Make sure the current view mode is stored if no module has already
   // populated the related key.
   $event->content += array('#view_mode' => $view_mode);
+  dpm($event->content);
 }
 
 /**
@@ -177,10 +178,30 @@ function eventbrite_event_view_multiple($events, $view_mode = 'full', $weight = 
   entity_prepare_view('eventbrite_event', $events, $langcode);
   $build = array();
   foreach ($events as $event) {
-    $build['events'][$event->id] = eventbrite_event_view($events, $view_mode, $langcode);
+    $build['events'][$event->id] = eventbrite_event_view($event, $view_mode, $langcode);
     $build['events'][$event->id]['#weight'] = $weight;
     $weight++;
   }
   $build['events']['#sorted'] = TRUE;
   return $build;
 }
+
+function eventbrite_contextual_page_tab($object, $entity_type) {
+
+  switch ($entity_type) {
+    case 'eventbrite_event':
+      $eventbrite_event_uri = eventbrite_event_uri();
+
+      // Let's always go back to the node page.
+      $destination = $eventbrite_event_uri . '/' . $object->id;
+      break;
+  }
+
+  $info = entity_get_info($entity_type);
+
+  // Get the manage display URI.
+  $admin_path = $info['admin ui']['path'] . '/manage/' . $object->id .'/edit';
+
+  drupal_goto($admin_path, array('query' => array('destination' => $destination)));
+}
+
