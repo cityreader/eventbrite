@@ -121,9 +121,9 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['date']['start_date'] = array(
     '#title' => t('Sale Starts'),
     '#type' => 'date_popup',
-    '#date_type' => DATE_DATETIME,
+    '#date_type' => DATE_UNIX,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i:s',
+    '#date_format' => 'd/m/Y H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['start_date']) ? $item['start_date'] : eventbrite_default_date(array('month' => 1)),
@@ -132,14 +132,14 @@ function eventbrite_field_widget_form(&$form, &$form_state, $field, $instance, $
   $element['date']['end_date'] = array(
     '#title' => t('Sale Ends'),
     '#type' => 'date_popup',
-    '#date_type' => DATE_DATETIME,
+    '#date_type' => DATE_UNIX,
     '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y - H:i:s',
+    '#date_format' => 'd/m/Y H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
     '#default_value' => isset($item['end_date']) ? $item['end_date'] : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
   );
-  
+
   $element['include_fee'] = array(
     '#title' => t('Including service fees'),
     '#type' => 'radios',

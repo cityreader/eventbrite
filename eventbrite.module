@@ -6,6 +6,7 @@
  */
 
 define('EVENTBRITE_URL_ORG', 'http://www.eventbrite.com/org');
+define('EVENTBRITE_DATE_FORMAT', 'Y-m-d H:i:s');
 
 module_load_include('inc', 'eventbrite', 'includes/eventbrite.date');
 module_load_include('inc', 'eventbrite', 'includes/eventbrite.field');
@@ -813,8 +814,8 @@ class EventbriteEvent extends Entity {
 
       $params = array(
         'title' => $this->title,
-        'start_date' => $this->start_date,
-        'end_date' => $this->end_date,
+        'start_date' => format_date($this->start_date, 'custom', EVENTBRITE_DATE_FORMAT),
+        'end_date' => format_date($this->end_date, 'custom', EVENTBRITE_DATE_FORMAT),
         'organizer_id' => $this->organizer_id,
         'status' => $this->status,
         'modified' => REQUEST_TIME,
@@ -873,8 +874,8 @@ dpm($params);
           'is_donation' => $ticket['is_donation'],
           'name' => $ticket['name'],
           'price' => $ticket['price'],
-          'start_date' => $ticket['start_date'],
-          'end_date' => $ticket['end_date'],
+          'start_date' => format_date($ticket['start_date'], 'custom', EVENTBRITE_DATE_FORMAT),
+          'end_date' => ormat_date($ticket['end_date'], 'custom', EVENTBRITE_DATE_FORMAT),
           'include_fee' => $ticket['include_fee'],
           // 'min' => $ticket['min'],
           'hide ' => $ticket['hide'],
