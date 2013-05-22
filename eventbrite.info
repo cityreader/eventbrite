@@ -14,13 +14,12 @@ files[] = includes/eventbrite.date.inc
 files[] = includes/eventbrite.field.inc
 files[] = includes/eventbrite.organizer.inc
 files[] = includes/eventbrite.venue.inc
-files[] = includes/eventbrite.event.inc
 files[] = includes/eventbrite.payment.inc
 
-files[] = eventbrite.css
-module_load_include('inc', 'eventbrite', 'includes/eventbrite.date');
-module_load_include('inc', 'eventbrite', 'includes/eventbrite.field');
-module_load_include('inc', 'eventbrite', 'includes/eventbrite.event');
+files[] = lib/eventbrite_organizer.entity.inc
+files[] = lib/eventbrite_organizer.uicontroller.inc
+files[] = lib/eventbrite_venue.entity.inc
+files[] = lib/eventbrite_venue.uicontroller.inc
 
 
 configure = admin/config/services/eventbrite

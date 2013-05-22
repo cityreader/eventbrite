@@ -1,0 +1,230 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function eventbrite_event_schema() {
+
+  $schema['eventbrite_event'] = array(
+    'fields' => array(
+      'event_id' => array(
+        'description' => "The eventbrite_event entity id.",
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'user_key' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'id' => array(
+        'description' => "The Eventbrite event id for API use.",
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => "The event title.",
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => FALSE,
+      ),
+      'description' => array(
+        'description' => "The event description.",
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+      ),
+      'description_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'start_date' => array(
+        'description' => 'The Unix timestamp when events start.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'end_date' => array(
+        'description' => 'The Unix timestamp when events end.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'privacy' => array(
+        'description' => '0 for a private event, 1 for a public event. If not provided, will default to 0.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'size' => 'tiny',
+        'default' => 0,
+      ),
+      'personalized_url' => array(
+        'description' => 'The event registration URL.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'venue_id' => array(
+        'description' => 'The event venue ID',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'organizer_id' => array(
+        'description' => 'The event organizer ID.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => FALSE,
+      ),
+      'capacity' => array(
+        'description' => 'The maximum number of people who can attend the event.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'status' => array(
+        'description' => 'The event status. Allowed values are 0 for “draft”, 1 for “live”.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the event was most created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'modified' => array(
+        'description' => 'The Unix timestamp when the event was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('event_id'),
+    'indexes' => array(
+      'event_date' => array('start_date', 'end_date'),
+      'event_created' => array('created'),
+      'event_changed' => array('modified'),
+    ),
+    'unique keys' => array(
+      'id' => array('id'),
+    ),
+    'foreign keys' => array(
+      'eventbrite_organizer' => array(
+        'table' => 'eventbrite_organizer',
+        'columns' => array('organizer_id' => 'organizer_id'),
+      ),
+      'eventbrite_venue' => array(
+        'table' => 'eventbrite_venue',
+        'columns' => array('venue_id' => 'venue_id'),
+      ),
+    ),
+  );
+
+  $schema['eventbrite_ticket'] = array(
+    'fields' => array(
+      'ticket_id' => array(
+        'description' => 'The ticket entity ID.',
+        'type' => 'serial',
+        'not null' => FALSE,
+      ),    
+      'id' => array(
+        'description' => 'The ticket type ID for API use.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'name' => array(
+        'description' => 'The ticket name.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'description' => array(
+        'description' => 'The ticket description.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+      ),
+      'is_donation' => array(
+        'description' => '0 for fixed-price tickets, 1 for donations. 0 will be used by default if not provided.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'price' => array(
+        'description' => '',
+        'type' => 'float',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'quantity_available' => array(
+        'description' => '',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'start_date' => array(
+        'description' => 'The Unix timestamp when ticket sales start.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'end_date' => array(
+        'description' => 'The Unix timestamp when ticket sales stop.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'include_fee' => array(
+        'description' => '0 to add the Eventbrite service fee on top of ticket price, or 1 to include it in the ticket price. 0 will be used by default if not provided.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'min' => array(
+        'description' => 'The minimum number of tickets per order.',
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'not null' => FALSE,
+        'default' => 1,
+      ),
+      'max' => array(
+        'description' => 'The maximum number of tickets per order.',
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'hide' => array(
+        'description' => 'Show or hide the ticket type.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('ticket_id'),
+    'unique keys' => array(
+      'id' => array('id'),
+    ),
+    'foreign keys' => array(
+      'eventbrite_event' => array(
+        'table' => 'eventbrite_event',
+        'columns' => array('organizer_id' => 'organizer_id'),
+      ),
+      'eventbrite_venue' => array(
+        'table' => 'eventbrite_venue',
+        'columns' => array('venue_id' => 'venue_id'),
+      ),
+    ),
+  );
+
+  return $schema;
+}

@@ -1,0 +1,276 @@
+<?php
+
+module_load_include('inc', 'eventbrite_event', 'includes/eventbrite_event.forms');
+
+/**
+ * Implements hook_entity_info().
+ */
+function eventbrite_event_entity_info() {
+  $entities['eventbrite_event'] = array(
+    'label' => t('Event'),
+    'entity class' => 'EventbriteEvent',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'eventbrite_event',
+    'fieldable' => TRUE,
+    'bundles' => array(
+      'eventbrite_event' => array(
+        'label' => t('Eventbrite Event'),
+        'admin' => array(
+          'path' => 'admin/content/events',
+          'access arguments' => array('administer eventbrite events'),
+        ),
+      ),
+    ),
+    'entity keys' => array(
+      'id' => 'event_id',
+      'label' => 'title',
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => TRUE,
+      ),
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'module' => 'eventbrite_event',
+    'admin ui' => array(
+      'path' => 'admin/content/events',
+      'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+      'file' => 'eventbrite.event.inc',
+      'controller class' => 'EventbriteEventUIController',
+    ),
+    'access callback' => 'eventbrite_access',
+  );
+
+  $entities['eventbrite_ticket'] = array(
+    'label' => t('Event'),
+    'entity class' => 'EventbriteTicket',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'eventbrite_ticket',
+    'fieldable' => FALSE,
+    'bundles' => array(
+      'eventbrite_ticket' => array(
+        'label' => t('Eventbrite Ticket'),
+        // 'admin' => array(
+          // 'path' => 'admin/content/events',
+          // 'access arguments' => array('administer eventbrite events'),
+        // ),
+      ),
+    ),
+    'entity keys' => array(
+      'id' => 'ticket_id',
+      'label' => 'title',
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'module' => 'eventbrite_event',
+    'access callback' => 'eventbrite_access',
+  );
+
+  return $entities;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+// function eventbrite_event_entity_info_alter(&$info) {
+  // if (isset($info['eventbrite_event'])) {
+     // // Add or remove the body field, as needed.
+//      
+    // $field = field_info_field('tickets');
+//     
+    // $instance = field_info_instance('eventbrite_event', 'tickets', 'eventbrite_event');
+//     
+    // if (empty($field)) {
+      // $field = array(
+        // 'field_name' => 'tickets',
+        // 'type' => 'eventbrite_ticket',
+        // 'module' => 'eventbrite',
+        // 'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+        // 'entity_types' => array('eventbrite_event'),
+      // );
+//        
+      // $field = field_create_field($field);
+    // }
+// 
+    // if (empty($instance)) {
+//       
+      // $instance = array(
+        // 'field_name' => 'tickets',
+        // 'entity_type' => 'eventbrite_event',
+        // 'bundle' => 'eventbrite_event',
+        // 'label' => 'Tickets',
+        // 'settings' => array(),
+        // 'description' => 'Event ticket field',
+        // 'required' => TRUE,
+        // 'widget' => array(
+          // 'type' => 'eventbrite_ticket_widget',
+        // ),
+        // 'display' => array(
+          // 'default' => array(
+            // 'type' => 'eventbrite_ticket_formatter',
+            // 'weight' => 10,
+          // ),
+          // 'teaser' => array(
+            // 'type' => 'eventbrite_ticket_formatter',
+            // 'weight' => 10,
+          // ),
+        // ),
+      // ); 
+//   
+      // $instance = field_create_instance($instance);
+    // }
+  // }
+// }
+
+/**
+ * Implements of hook_menu().
+ */
+function eventbrite_event_menu() {
+  $eventbrite_event_uri = eventbrite_event_uri();
+  $id_count = count(explode('/', $eventbrite_event_uri));
+
+  $items['eventbrite/ajax'] = array(
+    'page callback' => 'eventbrite_ticket_remove_js',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments' => array('administer eventbrite settings'),
+    'theme callback' => 'ajax_base_page_theme',
+    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    'file' => 'eventbrite.field.inc',    
+    'type' => MENU_CALLBACK,
+  );
+
+  $items[$eventbrite_event_uri . '/%eventbrite_event'] = array(
+    'title callback' => 'eventbrite_event_page_title',
+    'title arguments' => array($id_count),
+    'page callback' => 'eventbrite_event_page_view',
+    'page arguments' => array($id_count),
+    'access arguments' => array('view eventbrite events'),
+    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    'file' => 'eventbrite.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items[$eventbrite_event_uri . '/%eventbrite_event/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  
+  // $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
+    // 'title' => 'Edit',
+    // 'page callback' => 'eventbrite_contextual_page_tab',
+    // 'page arguments' => array($id_count, 'eventbrite_event'),
+    // 'access arguments' => array('administer eventbrite events'),
+    // 'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+    // 'file' => 'eventbrite.pages.inc',
+    // 'type' => MENU_LOCAL_TASK,
+  // );
+  
+  return $items;
+}
+
+/**
+ * Eventbrite event loader.
+ *
+ * @param $id
+ *   (optional) The internal id for this event. If no id is given all existing
+ *   events are returned.
+ *
+ * @return EventbriteVenue
+ *   Returns a fully-loaded Eventbrite event definition.
+ */
+function eventbrite_event_load($id) {
+  return entity_load_single('eventbrite_event', $id);
+}
+
+/**
+ * Load multiple Eventbrite event entities based on certain conditions.
+ *
+ * @param $ids
+ *   An array of Eventbrite event internal IDs of Drupal.
+ * @param $conditions
+ *   An array of conditions to match against the {entity} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ *
+ * @return
+ *   An array of event entities, indexed by event ID.
+ */
+function eventbrite_event_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('eventbrite_event', $ids, $conditions, $reset);
+}
+
+/**
+ * Create a Eventbrite event object.
+ */
+function eventbrite_event_create($values = array()) {
+  if (is_object($values)) {
+    $values = (array) $values;
+  }
+
+  return entity_get_controller('eventbrite_event')->create($values);
+}
+
+/**
+ * Saves an Eventbrite event to the database.
+ *
+ * @param EventbriteVenue $event
+ *   The event object.
+ */
+function eventbrite_event_save(EventbriteVenue $event) {
+  return $event->save();
+}
+
+/**
+ * Return event page base link to enable others to modify it
+ */
+function eventbrite_event_uri() {
+  return variable_get('eventbrite_event_uri', 'event');
+}
+
+/**
+ * Implements hook_field_extra_fields()
+ */
+function eventbrite_event_field_extra_fields() {
+  $extra['eventbrite_event']['eventbrite_event'] = array(
+    'form' => array(
+      'description' => array(
+        'label' => t('Event Details'),
+        'description' => t('Event entity element'),
+        'weight' => -4,
+      ),
+      // 'tickets' => array(
+        // 'label' => t('Ticket Information'),
+        // 'description' => t('Event entity element'),
+        // 'weight' => -3,
+      // ),
+    ),
+    'display' => array(
+      'description' => array(
+        'label' => t('Event Details'),
+        'description' => t('Event entity element'),
+        'weight' => 0,
+      ),
+      // 'tickets' => array(
+        // 'label' => t('Ticket Information'),
+        // 'description' => t('Event entity element'),
+        // 'weight' => 0,
+      // ),
+    )
+  );
+
+  return $extra;
+}
+
