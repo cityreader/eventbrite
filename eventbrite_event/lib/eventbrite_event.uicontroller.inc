@@ -20,7 +20,7 @@ class EventbriteEventUIController extends EntityDefaultUIController {
     
     $eventbrite_event_uri = eventbrite_event_uri();
     $id_count = count(explode('/', $eventbrite_event_uri));
-    $path = drupal_get_path('module', 'eventbrite');
+    $path = drupal_get_path('module', 'eventbrite_event');
 
 
     // $id_count = count(explode('/', $this->path));
@@ -50,7 +50,7 @@ class EventbriteEventUIController extends EntityDefaultUIController {
       'access arguments' => array('create', $this->entityType),
       'type' => MENU_LOCAL_ACTION,
       'file path' => $path . '/includes',
-      'file' => 'eventbrite.event.inc',
+      'file' => 'eventbrite_event.forms.inc',
     );
     $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
       'title' => 'Edit',
@@ -61,7 +61,7 @@ class EventbriteEventUIController extends EntityDefaultUIController {
       'access arguments' => array('update', $this->entityType, $id_count),
       'type' => MENU_LOCAL_TASK,
       'file path' => $path . '/includes',
-      'file' => 'eventbrite.event.inc',
+      'file' => 'eventbrite_event.forms.inc',
       'weight' => -9,
     );
 
@@ -75,7 +75,7 @@ class EventbriteEventUIController extends EntityDefaultUIController {
       'access arguments' => array('create', $this->entityType),
       'type' => MENU_LOCAL_TASK,
       'file path' => $path . '/includes',
-      'file' => 'eventbrite.event.inc',
+      'file' => 'eventbrite_event.forms.inc',
     );
     // Menu item for operations like revert and delete.
     $items[$eventbrite_event_uri . '/%eventbrite_event/%'] = array(

@@ -34,6 +34,7 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
     'event_get',
     // Organizers
     'organizer_get',
+    'organizer_list_events',
     // Users
     'user_list_events',
     'user_list_venues',
@@ -53,7 +54,7 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
   $cache = FALSE;
 
   if ($reset) {
-    clear_cache_all($cid, 'cache_eventbrite');
+    cache_clear_all($cid, 'cache_eventbrite');
   }
   else {
     $cache = cache_get($cid, 'cache_eventbrite');

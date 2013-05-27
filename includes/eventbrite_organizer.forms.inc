@@ -72,33 +72,6 @@ function eventbrite_organizer_form_submit(&$form, &$form_state) {
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
  */
-function eventbrite_organizer_get_enabled() {
-  // If Eventbrite OG is enabled and there is a group context
-  // TODO: This filtering of organizers by sub modules should really happen via a hook
-  if (module_exists('eventbrite_og') && $group_node = og_get_group_context()) {
-    $filter_organizers = eventbrite_og_get_enabled_organizers($group_node);
-  }
-  else {
-    // If Eventbrite OG is not overriding this field, use default user key for filtering
-    $default_organizers = eventbrite_get('user_list_organizers');
-
-    $filter_organizers = array_keys($default_organizers);
-  }
-
-  $enabled = array();
-  $result = db_query('SELECT organizer_id, name FROM {eventbrite_organizer} WHERE status = :status', array(':status' => 1));
-  foreach ($result AS $row) {
-    if (!isset($filter_organizers) || in_array($row->organizer_id, $filter_organizers)) {
-      $enabled[$row->organizer_id] = $row->name;
-    }
-  }
-  return $enabled;
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
 function eventbrite_organizer_list_form($form, $form_state, $user_key = '') {
   // Set default user key to site wide Eventbrite user key
   if (empty($user_key)) {

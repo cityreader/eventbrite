@@ -41,7 +41,7 @@ function eventbrite_event_entity_info() {
     'admin ui' => array(
       'path' => 'admin/content/events',
       'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
-      'file' => 'eventbrite.event.inc',
+      'file' => 'eventbrite_event.forms.inc',
       'controller class' => 'EventbriteEventUIController',
     ),
     'access callback' => 'eventbrite_access',
@@ -229,8 +229,16 @@ function eventbrite_event_create($values = array()) {
  * @param EventbriteVenue $event
  *   The event object.
  */
-function eventbrite_event_save(EventbriteVenue $event) {
-  return $event->save();
+function eventbrite_event_save($event) {
+  
+  if ($event instanceof EventbriteEvent) {
+    $event->save();
+  }
+  else {
+    $event = entity_create('eventbrite_event', (array) $event)->save();
+  }
+  
+  return $event;
 }
 
 /**
