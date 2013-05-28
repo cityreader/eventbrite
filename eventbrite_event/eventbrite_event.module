@@ -1,5 +1,9 @@
 <?php
 
+define('EVENTBRITE_EVENT_PRIVATE', 0);
+define('EVENTBRITE_EVENT_PUBLIC', 1);
+
+
 module_load_include('inc', 'eventbrite_event', 'includes/eventbrite_event.forms');
 
 /**
@@ -38,6 +42,7 @@ function eventbrite_event_entity_info() {
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
     'module' => 'eventbrite_event',
+    'metadata controller class' => 'EventbriteEventMetadataController',
     'admin ui' => array(
       'path' => 'admin/content/events',
       'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
@@ -177,9 +182,59 @@ function eventbrite_event_menu() {
     // 'file' => 'eventbrite.pages.inc',
     // 'type' => MENU_LOCAL_TASK,
   // );
-  
+
+  $items['test_cron'] = array(
+    'page callback' => 'test',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
+
+
+function test() {
+  $cron = variable_get('eventbrite_cron', 84600);
+  
+  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE queued = 0 OR queued < :time', array(
+    ':time' => REQUEST_TIME - $cron
+  ));
+
+  if (!$result) {
+    return;
+  }
+
+  $queue = DrupalQueue::get('eventbrite_event');
+  foreach ($result as $organizer) {
+    
+    $params = array(
+      'id' => $organizer->organizer_id,
+    );
+    
+    dpm($params);
+    $result = eventbrite_get('organizer_list_events', $params, TRUE);
+    
+    if (!$result) {
+      continue;
+    }
+
+    foreach ($result->events as $event) {
+      // db_update('eventbrite_organizer')
+        // ->fields(array('queued' => REQUEST_TIME))
+        // ->condition('id', $organizer->id)
+        // ->execute();
+      
+      $item = array(
+        'organizer' => $organizer,
+        'event' => $event->event,
+      );
+      eventbrite_event_refresh($item);
+      $queue->createItem($item);
+    }
+  }
+  return 'hello';
+}
+
 
 /**
  * Eventbrite event loader.
@@ -230,15 +285,7 @@ function eventbrite_event_create($values = array()) {
  *   The event object.
  */
 function eventbrite_event_save($event) {
-  
-  if ($event instanceof EventbriteEvent) {
-    $event->save();
-  }
-  else {
-    $event = entity_create('eventbrite_event', (array) $event)->save();
-  }
-  
-  return $event;
+  return $event->save();
 }
 
 /**
@@ -281,4 +328,209 @@ function eventbrite_event_field_extra_fields() {
 
   return $extra;
 }
+
+/**
+ * Implements hook_cron().
+ *
+ * Queues news feeds for updates once their refresh interval has elapsed.
+ */
+function eventbrite_event_cron() {
+  $cron = variable_get('eventbrite_cron', 84600);
+  
+  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE queued = 0 OR queued < :time', array(
+    ':time' => REQUEST_TIME - $cron
+  ));
+    dpm($result);
+  if (!$result) {
+    return;
+  }
+
+  $queue = DrupalQueue::get('eventbrite_event');
+
+  foreach ($result as $organizer) {
+
+    $params = array(
+      'id' => $organizer->organizer_id,
+    );
+
+    $result = eventbrite_get('organizer_list_events', $params, TRUE);
+
+    if (!$result) {
+      continue;
+    }
+
+    foreach ($result->events as $event) {
+      db_update('eventbrite_organizer')
+        ->fields(array('queued' => REQUEST_TIME))
+        ->condition('id', $organizer->id)
+        ->execute();
+      
+      $item = array(
+        'organizer' => $organizer,
+        'event' => $event->event,
+      );
+      
+      $queue->createItem($item);
+    }
+    
+    dpm($events);
+  }
+  
+  
+  // $result = db_query('SELECT * FROM {aggregator_feed} WHERE queued = 0 AND checked + refresh < :time AND refresh <> :never', array(
+    // ':time' => REQUEST_TIME,
+    // ':never' => AGGREGATOR_CLEAR_NEVER
+  // ));
+  // $queue = DrupalQueue::get('aggregator_feeds');
+  // foreach ($result as $feed) {
+    // if ($queue->createItem($feed)) {
+      // // Add timestamp to avoid queueing item more than once.
+      // db_update('aggregator_feed')
+        // ->fields(array('queued' => REQUEST_TIME))
+        // ->condition('fid', $feed->fid)
+        // ->execute();
+    // }
+  // }
+// 
+  // // Remove queued timestamp after 6 hours assuming the update has failed.
+  // db_update('aggregator_feed')
+    // ->fields(array('queued' => 0))
+    // ->condition('queued', REQUEST_TIME - (3600 * 6), '<')
+    // ->execute();
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function eventbrite_event_cron_queue_info() {
+  $queues['eventbrite_event'] = array(
+    'worker callback' => 'eventbrite_event_refresh',
+    'time' => 60,
+  );
+  return $queues;
+}
+
+/**
+ * Checks a news feed for new items.
+ *
+ * @param $feed
+ *   An object describing the feed to be refreshed.
+ */
+function eventbrite_event_refresh($item) {
+  $organizer = $item['organizer'];
+  $ebo_event = $item['event'];
+
+  $event_id = db_select('eventbrite_event', 'e')
+    ->fields('e', array('event_id'))
+    ->condition('id', $ebo_event->id)
+    ->execute()
+    ->fetchField();
+    
+  if ($event_id) {
+    // Check existing event and update
+    $event = eventbrite_event_load($event_id);
+    
+    $modified = strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset);
+    
+    if ($event->modified == $modified) {
+      $event->title = $ebo_event->title;
+      $event->description = $ebo_event->description;
+      $event->status = $ebo_event->status;
+      $event->start_date = strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset);
+      $event->end_date = strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset);
+      $event->privacy = $ebo_event->privacy;
+
+      eventbrite_event_save($event);
+    }
+  }
+  else {
+    // Create new event entity 
+    $event = array(
+      'id' => $ebo_event->id,
+      'title' => $ebo_event->title,
+      'description' => $ebo_event->description,
+      'status' => $ebo_event->status,
+      'start_date' => strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset),
+      'end_date' => strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset),
+      'privacy' => $ebo_event->privacy,
+    );
+    
+    eventbrite_event_create($event);
+  }
+  
+
+dpm($event);
+  // // Store feed URL to track changes.
+  // $feed_url = $feed->url;
+// 
+  // // Fetch the feed.
+  // list($fetcher, $parser, $processors) = _aggregator_get_variables();
+  // $success = module_invoke($fetcher, 'aggregator_fetch', $feed);
+// 
+  // // We store the hash of feed data in the database. When refreshing a
+  // // feed we compare stored hash and new hash calculated from downloaded
+  // // data. If both are equal we say that feed is not updated.
+  // $hash = hash('sha256', $feed->source_string);
+// 
+  // if ($success && ($feed->hash != $hash)) {
+    // // Parse the feed.
+    // if (module_invoke($parser, 'aggregator_parse', $feed)) {
+      // // Update feed with parsed data.
+      // db_merge('aggregator_feed')
+        // ->key(array('fid' => $feed->fid))
+        // ->fields(array(
+          // 'url' => $feed->url,
+          // 'link' => empty($feed->link) ? $feed->url : $feed->link,
+          // 'description' => empty($feed->description) ? '' : $feed->description,
+          // 'image' => empty($feed->image) ? '' : $feed->image,
+          // 'hash' => $hash,
+          // 'etag' => empty($feed->etag) ? '' : $feed->etag,
+          // 'modified' => empty($feed->modified) ? 0 : $feed->modified,
+        // ))
+        // ->execute();
+// 
+      // // Log if feed URL has changed.
+      // if ($feed->url != $feed_url) {
+        // watchdog('aggregator', 'Updated URL for feed %title to %url.', array('%title' => $feed->title, '%url' => $feed->url));
+      // }
+// 
+      // watchdog('aggregator', 'There is new syndicated content from %site.', array('%site' => $feed->title));
+      // drupal_set_message(t('There is new syndicated content from %site.', array('%site' => $feed->title)));
+// 
+      // // If there are items on the feed, let all enabled processors do their work on it.
+      // if (@count($feed->items)) {
+        // foreach ($processors as $processor) {
+          // module_invoke($processor, 'aggregator_process', $feed);
+        // }
+      // }
+    // }
+  // }
+  // else {
+    // drupal_set_message(t('There is no new syndicated content from %site.', array('%site' => $feed->title)));
+  // }
+// 
+  // // Regardless of successful or not, indicate that this feed has been checked.
+  // db_update('aggregator_feed')
+    // ->fields(array('checked' => REQUEST_TIME, 'queued' => 0))
+    // ->condition('fid', $feed->fid)
+    // ->execute();
+// 
+  // // Expire old feed items.
+  // if (function_exists('aggregator_expire')) {
+    // aggregator_expire($feed);
+  // }
+}
+
+function eventbrite_event_privacy_options() {
+  return array(
+    EVENTBRITE_EVENT_PRIVATE => t('Private event'),
+    EVENTBRITE_EVENT_PUBLIC => t('Public event'),
+  );
+}
+
+
+
+
+
+
 

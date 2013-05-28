@@ -18,19 +18,19 @@ function eventbrite_event_schema() {
         'not null' => FALSE,
       ),
       'id' => array(
-        'description' => "The Eventbrite event id for API use.",
+        'description' => 'The Eventbrite event id for API use.',
         'type' => 'varchar',
         'length' => '20',
         'not null' => TRUE,
       ),
       'title' => array(
-        'description' => "The event title.",
+        'description' => 'The event title.',
         'type' => 'varchar',
         'length' => '255',
         'not null' => FALSE,
       ),
       'description' => array(
-        'description' => "The event description.",
+        'description' => 'The event description.',
         'type' => 'text',
         'not null' => FALSE,
         'size' => 'medium',
@@ -83,7 +83,7 @@ function eventbrite_event_schema() {
         'not null' => FALSE,
       ),
       'status' => array(
-        'description' => 'The event status. Allowed values are 0 for “draft”, 1 for “live”.',
+        'description' => 'The event status. Allowed values are 0 for "draft", 1 for "live".',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 1,
