@@ -152,7 +152,7 @@ function eventbrite_event_menu() {
     'access arguments' => array('administer eventbrite settings'),
     'theme callback' => 'ajax_base_page_theme',
     'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
-    'file' => 'eventbrite.field.inc',    
+    'file' => 'eventbrite.field.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -162,8 +162,8 @@ function eventbrite_event_menu() {
     'page callback' => 'eventbrite_event_page_view',
     'page arguments' => array($id_count),
     'access arguments' => array('view eventbrite events'),
-    'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
-    'file' => 'eventbrite.pages.inc',
+    'file path' => drupal_get_path('module', 'eventbrite_event') . '/includes',
+    'file' => 'eventbrite_event.pages.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -178,8 +178,8 @@ function eventbrite_event_menu() {
     // 'page callback' => 'eventbrite_contextual_page_tab',
     // 'page arguments' => array($id_count, 'eventbrite_event'),
     // 'access arguments' => array('administer eventbrite events'),
-    // 'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
-    // 'file' => 'eventbrite.pages.inc',
+    // 'file path' => drupal_get_path('module', 'eventbrite_event') . '/includes',
+    // 'file' => 'eventbrite_event.pages.inc',
     // 'type' => MENU_LOCAL_TASK,
   // );
 
@@ -348,6 +348,10 @@ function eventbrite_event_cron() {
   $queue = DrupalQueue::get('eventbrite_event');
 
   foreach ($result as $organizer) {
+    db_update('eventbrite_organizer')
+      ->fields(array('queued' => REQUEST_TIME))
+      ->condition('id', $organizer->id)
+      ->execute();
 
     $params = array(
       'id' => $organizer->organizer_id,
@@ -359,12 +363,7 @@ function eventbrite_event_cron() {
       continue;
     }
 
-    foreach ($result->events as $event) {
-      db_update('eventbrite_organizer')
-        ->fields(array('queued' => REQUEST_TIME))
-        ->condition('id', $organizer->id)
-        ->execute();
-      
+    foreach ($result->events as $event) {     
       $item = array(
         'organizer' => $organizer,
         'event' => $event->event,
@@ -425,20 +424,21 @@ function eventbrite_event_refresh($item) {
     ->condition('id', $ebo_event->id)
     ->execute()
     ->fetchField();
-    
+
   if ($event_id) {
     // Check existing event and update
     $event = eventbrite_event_load($event_id);
-    
+
     $modified = strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset);
-    
-    if ($event->modified == $modified) {
+
+    if ($event->modified != $modified) {
       $event->title = $ebo_event->title;
       $event->description = $ebo_event->description;
       $event->status = $ebo_event->status;
       $event->start_date = strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset);
       $event->end_date = strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset);
       $event->privacy = $ebo_event->privacy;
+      $event->modified = strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset);
 
       eventbrite_event_save($event);
     }
@@ -453,11 +453,13 @@ function eventbrite_event_refresh($item) {
       'start_date' => strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset),
       'end_date' => strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset),
       'privacy' => $ebo_event->privacy,
+      'created' => strtotime($ebo_event->created + ' ' + $ebo_event->timezone_offset),
+      'modified' => strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset),
     );
-    
+
     eventbrite_event_create($event);
   }
-  
+
 
 dpm($event);
   // // Store feed URL to track changes.

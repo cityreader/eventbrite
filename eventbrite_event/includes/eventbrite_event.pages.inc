@@ -136,7 +136,7 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
 
   $event->content['description'] = array(
     '#type' => 'markup',
-    '#markup' => check_markup($event->description, $event->description_format),
+    '#markup' => $event->description,
 //    '#markup' => check_markup($event->description, 'panopoly_html_text'),
   );
   

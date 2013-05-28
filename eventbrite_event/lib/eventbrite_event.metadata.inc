@@ -20,6 +20,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'label' => t("Event ID"),
       'type' => 'integer',
       'description' => t("The unique ID of the event."),
+      'schema field' => 'event_id',
     );
 
     $properties['title'] = array(
@@ -27,6 +28,8 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'description' => t('The event title.'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'title',
+      'required' => TRUE,
     );
 
     $properties['description'] = array(
@@ -34,21 +37,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'description' => t('The event description.'),
       'type' => 'text',
       'setter callback' => 'entity_property_verbatim_set',
-    );
-
-    $properties['start_date'] = array(
-      'label' => t('Start date'),
-      'description' => t("The start date of the event."),
-      'type' => 'date',
-      'setter callback' => 'entity_property_verbatim_set',
-    );
-
-    $properties['modified'] = array(
-      'label' => t('Updated'),
-      'description' => t('The date the event was modified.'),
-      'type' => 'date',
-      'schema field' => 'modified',
-      'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'description',
     );
 
     $properties['privacy'] = array(
@@ -57,6 +46,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'type' => 'list',
       'options list' => 'eventbrite_event_privacy_options',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'privacy',
     );
     
     $properties['personalized_url'] = array(
@@ -64,6 +54,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'description' => t('The event registration URL.'),
       'type' => 'uri',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'personalized_url',
     );
 
     $properties['venue'] = array(
@@ -87,6 +78,15 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'description' => t('The event status.'),
       'type' => 'boolean',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'status',
+    );
+
+    $properties['start_date'] = array(
+      'label' => t('Start date'),
+      'description' => t("The start date of the event."),
+      'type' => 'date',
+      'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'start_date',
     );
 
     $properties['end_date'] = array(
@@ -94,14 +94,23 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'description' => t("The end date of the event."),
       'type' => 'date',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'end_date',
     );
 
     $properties['created'] = array(
       'label' => t('Created'),
       'description' => t("The date the event was created."),
       'type' => 'date',
-      'schema field' => 'created',
       'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'created',
+    );
+
+    $properties['modified'] = array(
+      'label' => t('Updated'),
+      'description' => t('The date the event was modified.'),
+      'type' => 'date',
+      'setter callback' => 'entity_property_verbatim_set',
+      'schema field' => 'modified',
     );
 
     return $info;
