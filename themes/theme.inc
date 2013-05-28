@@ -37,7 +37,7 @@ function template_preprocess_eventbrite_event(&$variables) {
   foreach (element_children($variables['elements']) as $key) {
     $variables['content'][$key] = $variables['elements'][$key];
   }
-  dpm($variables);
+
 // 
   // // Make the field variables available with the appropriate language.
   // field_attach_preprocess('node', $node, $variables['content'], $variables);

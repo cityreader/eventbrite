@@ -67,7 +67,7 @@ function eventbrite_event_view($event, $view_mode = 'full', $langcode = NULL) {
     '#view_mode' => $view_mode,
     '#language' => $langcode,
   );
-dpm($build);
+
   // if (empty($event->in_preview)) {
     // $prefix = '';
     // $is_threaded = isset($event->divs) && variable_get('comment_default_mode_' . $node->type, COMMENT_MODE_THREADED) == COMMENT_MODE_THREADED;
@@ -134,6 +134,12 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   entity_prepare_view('eventbrite_event', array($event->id => $event), $langcode);
   $event->content += field_attach_view('eventbrite_event', $event, $view_mode, $langcode);
 
+  libraries_load('eventbrite.php');
+  $event->content['tickets'] = array(
+    '#type' => 'markup',
+    '#markup' => Eventbrite::ticketWidget($event),
+  );
+
   $event->content['description'] = array(
     '#type' => 'markup',
     '#markup' => $event->description,
@@ -155,7 +161,7 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   // Make sure the current view mode is stored if no module has already
   // populated the related key.
   $event->content += array('#view_mode' => $view_mode);
-  dpm($event->content);
+
 }
 
 /**

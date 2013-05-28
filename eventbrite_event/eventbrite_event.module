@@ -313,16 +313,16 @@ function eventbrite_event_field_extra_fields() {
       // ),
     ),
     'display' => array(
-      'description' => array(
-        'label' => t('Event Details'),
+      'tickets' => array(
+        'label' => t('Ticket Information'),
         'description' => t('Event entity element'),
         'weight' => 0,
       ),
-      // 'tickets' => array(
-        // 'label' => t('Ticket Information'),
-        // 'description' => t('Event entity element'),
-        // 'weight' => 0,
-      // ),
+      'description' => array(
+        'label' => t('Event Details'),
+        'description' => t('Event entity element'),
+        'weight' => 1,
+      ),
     )
   );
 
