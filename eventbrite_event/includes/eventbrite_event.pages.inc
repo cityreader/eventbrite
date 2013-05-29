@@ -134,6 +134,12 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   entity_prepare_view('eventbrite_event', array($event->id => $event), $langcode);
   $event->content += field_attach_view('eventbrite_event', $event, $view_mode, $langcode);
 
+  $event->content['date'] = array(
+    '#theme' => 'eventbrite_event_date',
+    '#start_date' => $event->start_date,
+    '#end_date' => $event->end_date,
+  );
+
   $event->content['venue'] = array(
     '#theme' => 'eventbrite_event_venue',
     '#venue' => eventbrite_venue_load($event->venue_id),

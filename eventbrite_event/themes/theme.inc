@@ -89,7 +89,49 @@ function theme_eventbrite_event_ticket($variables) {
   return $output;
 }
 
+/**
+ * Template preprocess function for displaying event venue.
+ */
+function template_preprocess_eventbrite_event_venue(&$variables) {
+  $venue = $variables['venue'];
 
+  $address = array();
+  
+  foreach (array('addess', 'address_2', 'city', 'region') as $field_name) {
+    if (!empty($venue->$field_name)) {
+      $address[] = $venue->$field_name;
+    }
+  }
+  $address = implode(', ', $address);
+
+  $variables['address'] = check_plain($address);
+  $variables['name'] = check_plain($venue->name);
+}
+
+/**
+ * Template preprocess function for displaying event date.
+ */
+function template_preprocess_eventbrite_event_date(&$variables) {
+  $start_date = format_date($variables['start_date'], 'custom', 'l, F j, Y \a\t g:i A');
+
+  $day1 = date('Ymd', $variables['start_date']);
+  $day2 = date('Ymd', $variables['end_date']);
+
+  if ($day1 === $day2) {
+    $end_date = format_date($variables['end_date'], 'custom', 'g:i A');
+  }
+  else {
+    $end_date = format_date($variables['end_date'], 'custom', 'l, F j, Y \a\t g:i A');
+  }
+
+  $variables['start_date'] = $start_date;
+  $variables['end_date'] = $end_date;
+  $variables['timezone'] = date_default_timezone();
+  
+  $dateTime = new DateTime();
+  $dateTime->setTimeZone(new DateTimeZone($variables['timezone']));
+  $variables['timezone_abbr'] = $dateTime->format('T');
+}
 
 
 

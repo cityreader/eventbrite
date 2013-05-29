@@ -205,8 +205,9 @@ function eventbrite_event_theme() {
       'path' => $path . '/themes',
       'file' => 'theme.inc',
     ),
-    'eventbrite_event_ticket' => array(
-      'render element' => 'element',
+    'eventbrite_event_date' => array(
+      'variables' => array('start_date' => '', 'end_date' => ''),
+      'template' => 'eventbrite-event-date',
       'path' => $path . '/themes',
       'file' => 'theme.inc',
     ),
@@ -214,6 +215,11 @@ function eventbrite_event_theme() {
       'variables' => array('venue' => NULL),
       'template' => 'eventbrite-event-venue',
       'path' => $path . '/themes',
+    ),
+    'eventbrite_event_ticket' => array(
+      'render element' => 'element',
+      'path' => $path . '/themes',
+      'file' => 'theme.inc',
     ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
@@ -348,12 +354,12 @@ function eventbrite_event_refresh_page() {
  * Queues news feeds for updates once their refresh interval has elapsed.
  */
 function eventbrite_event_cron() {
-  $cron = variable_get('eventbrite_cron', 84600);
+  $expire = variable_get('eventbrite_cron', 84600);
   
   $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE queued = 0 OR queued < :time', array(
-    ':time' => REQUEST_TIME - $cron
+    ':time' => REQUEST_TIME - $expire
   ));
-    dpm($result);
+
   if (!$result) {
     return;
   }
@@ -382,31 +388,7 @@ function eventbrite_event_cron() {
 
       $queue->createItem($ebo_event);
     }
-    
-    dpm($events);
   }
-  
-  
-  // $result = db_query('SELECT * FROM {aggregator_feed} WHERE queued = 0 AND checked + refresh < :time AND refresh <> :never', array(
-    // ':time' => REQUEST_TIME,
-    // ':never' => AGGREGATOR_CLEAR_NEVER
-  // ));
-  // $queue = DrupalQueue::get('aggregator_feeds');
-  // foreach ($result as $feed) {
-    // if ($queue->createItem($feed)) {
-      // // Add timestamp to avoid queueing item more than once.
-      // db_update('aggregator_feed')
-        // ->fields(array('queued' => REQUEST_TIME))
-        // ->condition('fid', $feed->fid)
-        // ->execute();
-    // }
-  // }
-// 
-  // // Remove queued timestamp after 6 hours assuming the update has failed.
-  // db_update('aggregator_feed')
-    // ->fields(array('queued' => 0))
-    // ->condition('queued', REQUEST_TIME - (3600 * 6), '<')
-    // ->execute();
 }
 
 /**
@@ -445,10 +427,10 @@ function eventbrite_event_refresh($ebo_event) {
       $event->status = $ebo_event->status;
       $event->venue_id = eventbrite_event_get_venue_id($ebo_event->venue, $event);
       $event->organizer_id = $ebo_event->organizer->id;
-      $event->start_date = strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset);
-      $event->end_date = strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset);
+      $event->start_date = strtotime($ebo_event->start_date . ' ' . $ebo_event->timezone_offset);
+      $event->end_date = strtotime($ebo_event->end_date . ' ' . $ebo_event->timezone_offset);
       $event->privacy = $ebo_event->privacy;
-      $event->modified = strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset);
+      $event->modified = strtotime($ebo_event->modified . ' ' . $ebo_event->timezone_offset);
 
       eventbrite_event_save($event);
     }
@@ -462,11 +444,11 @@ function eventbrite_event_refresh($ebo_event) {
       'venue_id' => eventbrite_event_get_venue_id($ebo_event->venue),
       'organizer_id' => $ebo_event->organizer->id,
       'status' => $ebo_event->status,
-      'start_date' => strtotime($ebo_event->start_date + ' ' + $ebo_event->timezone_offset),
-      'end_date' => strtotime($ebo_event->end_date + ' ' + $ebo_event->timezone_offset),
+      'start_date' => strtotime($ebo_event->start_date . ' ' . $ebo_event->timezone_offset),
+      'end_date' => strtotime($ebo_event->end_date . ' ' . $ebo_event->timezone_offset),
       'privacy' => $ebo_event->privacy,
-      'created' => strtotime($ebo_event->created + ' ' + $ebo_event->timezone_offset),
-      'modified' => strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset),
+      'created' => strtotime($ebo_event->created . ' ' . $ebo_event->timezone_offset),
+      'modified' => strtotime($ebo_event->modified . ' ' . $ebo_event->timezone_offset),
     );
     $event = entity_create('eventbrite_event', $event);
     eventbrite_event_save($event);
@@ -528,23 +510,3 @@ function eventbrite_event_privacy_options() {
     EVENTBRITE_EVENT_PUBLIC => t('Public event'),
   );
 }
-
-function eventbrite_event_preprocess_eventbrite_event_venue(&$variables) {
-  $venue = $variables['venue'];
-
-  $address = array();
-  
-  foreach (array('addess', 'address_2', 'city', 'region') as $field_name) {
-    if (!empty($venue->$field_name)) {
-      $address[] = $venue->$field_name;
-    }
-  }
-  $address = implode(', ', $address);
-
-  $variables['address'] = check_plain($address);
-  $variables['name'] = check_plain($venue->name);
-}
-
-
-
-

@@ -51,8 +51,6 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#element_validate' => array('eventbrite_date_combo_validate'),
   );
 
-dpm($entity->start_date);
-
   $form['date']['start_date'] = array(
     '#title' => t('Start'),
     '#description' => t('The date and time when event start.'),
@@ -75,7 +73,7 @@ dpm($entity->start_date);
     '#date_format' => 'd/m/Y H:i:s',
     '#date_increment' => 1,
     '#date_year_range' => '0:+1',
-    '#default_value' => $entity->end_date ? $entity->end_date : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
+    '#default_value' => $entity->end_date ? date('Y-m-d h:i:s', $entity->end_date) : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
     '#required' => TRUE,
   );
 

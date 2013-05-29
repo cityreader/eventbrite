@@ -8,5 +8,5 @@ Drupal.behaviors.eventbriteEvent = {
     });
   }
 }
-  
+
 })(jQuery);
