@@ -217,7 +217,7 @@ function eventbrite_schema() {
       ),
       'name' => array(
         'type' => 'varchar',
-        'length' => 32,
+        'length' => 255,
         'not null' => FALSE,
       ),
       'address' => array(

@@ -76,3 +76,25 @@ function template_preprocess_eventbrite_event(&$variables) {
   // $variables['theme_hook_suggestions'][] = 'node__' . $node->type;
   // $variables['theme_hook_suggestions'][] = 'node__' . $node->nid;
 }
+
+function theme_eventbrite_event_ticket($variables) {
+  libraries_load('eventbrite.php');
+
+  $element = $variables['element'];
+  $event = $element['#event'];
+
+  drupal_add_js(drupal_get_path('module', 'eventbrite_event') . '/eventbrite_event.js');
+
+  $output = Eventbrite::ticketWidget($event, '100%');
+  return $output;
+}
+
+
+
+
+
+
+
+
+
+

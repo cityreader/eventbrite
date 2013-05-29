@@ -22,6 +22,7 @@
  */
 function eventbrite_get($op, $params = NULL, $reset = FALSE) {
   $result = array();
+  $cid = array();
 
   $eb_client = eventbrite_get_object();
 
@@ -29,28 +30,33 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
     return FALSE;
   }
 
-  $valid_callbacks = array(
-    // Events
-    'event_get',
-    // Organizers
-    'organizer_get',
-    'organizer_list_events',
-    // Users
-    'user_list_events',
-    'user_list_venues',
-    'user_list_organizers',
-    'user_get',
-  );
 
-  if (!in_array($op, $valid_callbacks)) {
-    drupal_set_message('Eventbrite get operation is not valid', 'error');
-    watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
-    return;
+  switch ($op) {
+    case 'event_get':
+    case 'organizer_get':
+    case 'organizer_list_events':
+    case 'user_list_events':
+    case 'user_list_venues':
+    case 'user_list_organizers':
+      $cid[] = $op;
+      $cid[] = $params['id'];
+      break;
+      
+    case 'user_get':
+      $cid[] = $op;
+      break;
+      
+    default:
+      drupal_set_message('Eventbrite get operation is not valid', 'error');
+      watchdog('eventbrite', t('Eventbrite get operation is not valid'), NULL, WATCHDOG_ERROR);
+      return;
   }
 
-
   $user_key = variable_get('eventbrite_user_key', '');
-  $cid = $op . ':' . $user_key;
+  $cid[] = $user_key;
+  
+  $cid = implode(':', $cid);
+
   $cache = FALSE;
 
   if ($reset) {
@@ -75,6 +81,8 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
       return;
     }
 
+    $expire = 60 * variable_get('eventbrite_cache_minimum', 5);
+
     if (strpos($op, 'user_list') !== FALSE) {
       $plural_label = substr($op, 10);
       $label = substr($op, 10, -1);
@@ -95,10 +103,12 @@ function eventbrite_get($op, $params = NULL, $reset = FALSE) {
 
       module_invoke_all('eventbrite_' . $op, $result);
 
-      $expire = 60 * variable_get('eventbrite_cache_minimum', 5);
-
       cache_set($cid, $data, 'cache_eventbrite', REQUEST_TIME + $expire);
     }
+    else {
+      cache_set($cid, $result, 'cache_eventbrite', REQUEST_TIME + $expire);
+    } 
+    
   }
 
   return $result;

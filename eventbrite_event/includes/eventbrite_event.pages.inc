@@ -134,16 +134,20 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   entity_prepare_view('eventbrite_event', array($event->id => $event), $langcode);
   $event->content += field_attach_view('eventbrite_event', $event, $view_mode, $langcode);
 
-  libraries_load('eventbrite.php');
+  $event->content['venue'] = array(
+    '#theme' => 'eventbrite_event_venue',
+    '#venue' => eventbrite_venue_load($event->venue_id),
+  );
+
   $event->content['tickets'] = array(
-    '#type' => 'markup',
-    '#markup' => Eventbrite::ticketWidget($event),
+    '#theme' => 'eventbrite_event_ticket',
+    '#event' => $event,
   );
 
   $event->content['description'] = array(
-    '#type' => 'markup',
-    '#markup' => $event->description,
-//    '#markup' => check_markup($event->description, 'panopoly_html_text'),
+    '#type' => 'fieldset',
+    '#title' => t('Event Details'),
+    '#value' => filter_xss_admin($event->description),
   );
   
   // if (empty($event->in_preview)) {

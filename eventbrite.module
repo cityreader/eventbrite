@@ -223,12 +223,12 @@ function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
 function eventbrite_theme() {
   $path = drupal_get_path('module', 'eventbrite');
   return array(
-   'eventbrite_event' => array(
-     'render element' => 'elements',
-     'template' => 'eventbrite-event',
-     'path' => $path . '/themes',
-     'file' => 'theme.inc',
-   ),
+   // 'eventbrite_event' => array(
+     // 'render element' => 'elements',
+     // 'template' => 'eventbrite-event',
+     // 'path' => $path . '/themes',
+     // 'file' => 'theme.inc',
+   // ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
 //      'file' => 'eventbrite.organizer.inc',
@@ -408,17 +408,6 @@ function eventbrite_venue_load($id) {
  */
 function eventbrite_venue_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('eventbrite_venue', $ids, $conditions, $reset);
-}
-
-/**
- * Create a Eventbrite venue object.
- */
-function eventbrite_venue_create($values = array()) {
-  if (is_object($values)) {
-    $values = (array) $values;
-  }
-
-  return entity_get_controller('eventbrite_venue')->create($values);
 }
 
 /**
