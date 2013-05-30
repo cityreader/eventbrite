@@ -42,40 +42,40 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
   module_load_include('inc', 'date_api', 'date_api_elements');
   // $timezone = date_get_timezone($field['settings']['tz_handling'], isset($items[0]['timezone']) ? $items[0]['timezone'] : date_default_timezone());
   $timezone = date_default_timezone();
-
-  $form['date'] = array(
-    '#title' => t('Date'),
-    '#type' => 'fieldset',
-    '#validator' => array('eventbrite_date_combo_validate'),
-    '#weight' => -18,
-    '#element_validate' => array('eventbrite_date_combo_validate'),
-  );
-
-  $form['date']['start_date'] = array(
-    '#title' => t('Start'),
-    '#description' => t('The date and time when event start.'),
-    '#type' => 'date_popup',
-    '#date_type' => DATE_UNIX,
-    '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y H:i:s',
-    '#date_increment' => 1,
-    '#date_year_range' => '0:+1',
-    '#default_value' => $entity->start_date ? date('Y-m-d h:i:s', $entity->start_date) : eventbrite_default_date(array('month' => 1)),
-    '#required' => TRUE,
-  );
-
-  $form['date']['end_date'] = array(
-    '#title' => t('End'),
-    '#description' => t('The date and time when event end.'),
-    '#type' => 'date_popup',
-    '#date_type' => DATE_UNIX,
-    '#date_timezone' => $timezone,
-    '#date_format' => 'd/m/Y H:i:s',
-    '#date_increment' => 1,
-    '#date_year_range' => '0:+1',
-    '#default_value' => $entity->end_date ? date('Y-m-d h:i:s', $entity->end_date) : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
-    '#required' => TRUE,
-  );
+//
+//  $form['date'] = array(
+//    '#title' => t('Date'),
+//    '#type' => 'fieldset',
+//    '#validator' => array('eventbrite_date_combo_validate'),
+//    '#weight' => -18,
+//    '#element_validate' => array('eventbrite_date_combo_validate'),
+//  );
+//
+//  $form['date']['start_date'] = array(
+//    '#title' => t('Start'),
+//    '#description' => t('The date and time when event start.'),
+//    '#type' => 'date_popup',
+//    '#date_type' => DATE_UNIX,
+//    '#date_timezone' => $timezone,
+//    '#date_format' => 'd/m/Y H:i:s',
+//    '#date_increment' => 1,
+//    '#date_year_range' => '0:+1',
+//    '#default_value' => $entity->start_date ? date('Y-m-d h:i:s', $entity->start_date) : eventbrite_default_date(array('month' => 1)),
+//    '#required' => TRUE,
+//  );
+//
+//  $form['date']['end_date'] = array(
+//    '#title' => t('End'),
+//    '#description' => t('The date and time when event end.'),
+//    '#type' => 'date_popup',
+//    '#date_type' => DATE_UNIX,
+//    '#date_timezone' => $timezone,
+//    '#date_format' => 'd/m/Y H:i:s',
+//    '#date_increment' => 1,
+//    '#date_year_range' => '0:+1',
+//    '#default_value' => $entity->end_date ? date('Y-m-d h:i:s', $entity->end_date) : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
+//    '#required' => TRUE,
+//  );
 
   $form['privacy'] = array(
     '#type' => 'checkbox',

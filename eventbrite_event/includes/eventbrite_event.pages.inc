@@ -27,7 +27,7 @@ function eventbrite_event_show($event, $message = FALSE) {
   // }
 
   // For markup consistency with other pages, use node_view_multiple() rather than node_view().
-  $events = eventbrite_event_view_multiple(array($event->id => $event), 'full');
+  $events = eventbrite_event_view_multiple(array($event->event_id => $event), 'full');
 
   // // Update the history table, stating that this user viewed this node.
   // node_tag_new($node);
@@ -134,12 +134,6 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
   entity_prepare_view('eventbrite_event', array($event->id => $event), $langcode);
   $event->content += field_attach_view('eventbrite_event', $event, $view_mode, $langcode);
 
-  $event->content['date'] = array(
-    '#theme' => 'eventbrite_event_date',
-    '#start_date' => $event->start_date,
-    '#end_date' => $event->end_date,
-  );
-
   $event->content['venue'] = array(
     '#theme' => 'eventbrite_event_venue',
     '#venue' => eventbrite_venue_load($event->venue_id),
@@ -155,7 +149,9 @@ function eventbrite_event_build_content($event, $view_mode = 'full', $langcode =
     '#title' => t('Event Details'),
     '#value' => filter_xss_admin($event->description),
   );
-  
+
+// dpm(field_info_field('field_event_date'));
+// dpm(field_info_instance('eventbrite_event', 'field_event_date', 'eventbrite_event'));
   // if (empty($event->in_preview)) {
     // $comment->content['links']['comment'] = array(
       // '#theme' => 'links__comment__comment',

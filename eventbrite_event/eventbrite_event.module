@@ -2,7 +2,7 @@
 
 define('EVENTBRITE_EVENT_PRIVATE', 0);
 define('EVENTBRITE_EVENT_PUBLIC', 1);
-
+define('EVENTBRITE_EVENT_DATE_FIELD', 'eventbrite_event_date');
 
 module_load_include('inc', 'eventbrite_event', 'includes/eventbrite_event.forms');
 
@@ -89,13 +89,61 @@ function eventbrite_event_entity_info() {
 /**
  * Implements hook_entity_info_alter().
  */
-// function eventbrite_event_entity_info_alter(&$info) {
-  // if (isset($info['eventbrite_event'])) {
-     // // Add or remove the body field, as needed.
-//      
-    // $field = field_info_field('tickets');
-//     
-    // $instance = field_info_instance('eventbrite_event', 'tickets', 'eventbrite_event');
+function eventbrite_event_entity_info_alter(&$info) {
+  // if the field doesn't already exist, create required email field to be used with contacts
+  if (!field_read_field(EVENTBRITE_EVENT_DATE_FIELD, array('include_inactive' => TRUE))) {
+    $date_field = array(
+      'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
+      'type' => 'date',
+      'locked' => TRUE,
+      'cardinality' => 1,
+      'settings' => array(
+        'granularity' => array(
+          'month' => 'month',
+          'day' => 'day',
+          'hour' => 'hour',
+          'minute' => 'minute',
+          'year' => 'year',
+          'second' => 0,
+         ),
+         'tz_handling' => 'none',
+         'todate' => 'required',
+      ),
+    );
+    field_create_field($date_field);
+  }
+    
+  if (!field_info_instance('eventbrite_event', EVENTBRITE_EVENT_DATE_FIELD, 'eventbrite_event')) {
+    $date_field = array(
+      'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
+      'entity_type' => 'eventbrite_event',
+      'bundle' => 'eventbrite_event',
+      'label' => t('Event Date'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'date_popup',
+        'settings' => array(
+          'input_format' => 'Y-m-d H:i:s',
+          'year_range' => '-0:+1',
+          'increment' => '30',
+        ),
+      ),
+      'settings' => array(
+        'default_value' => 'strtotime',
+        'default_value_code' => '+1 week',
+        'default_value' => 'strtotime',
+        'default_value_code' => '+1 week 1 hour',
+      ),
+      'required' => TRUE,
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'eventbrite_date',
+        ),
+      ),
+    );
+    field_create_instance($date_field);
+  }
 //     
     // if (empty($field)) {
       // $field = array(
@@ -136,8 +184,7 @@ function eventbrite_event_entity_info() {
 //   
       // $instance = field_create_instance($instance);
     // }
-  // }
-// }
+}
 
 /**
  * Implements hook_menu().
@@ -226,6 +273,38 @@ function eventbrite_event_theme() {
 //      'file' => 'eventbrite.organizer.inc',
 //    ),
   );
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function eventbrite_event_field_formatter_info() {
+  $formatters = array(
+    'eventbrite_date' => array(
+      'label' => t('Eventbrite date'),
+      'field types' => array('date', 'datestamp', 'datetime'),
+    ),
+  );
+  return $formatters;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function eventbrite_event_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  foreach ($items as $delta => $item) {
+    $variables = array(
+      'start_date' => $item['value'],
+      'end_date' => $item['value2'],
+    );
+    $element[$delta] = array(
+      '#markup' => theme('eventbrite_event_date', $variables)
+    );
+  }
+dpm($element);
+  return $element;
 }
 
 /**
@@ -421,19 +500,19 @@ function eventbrite_event_refresh($ebo_event) {
 
     $modified = strtotime($ebo_event->modified + ' ' + $ebo_event->timezone_offset);
 
-    if ($event->modified != $modified) {
+//    if ($event->modified != $modified) {
       $event->title = $ebo_event->title;
       $event->description = $ebo_event->description;
       $event->status = $ebo_event->status;
       $event->venue_id = eventbrite_event_get_venue_id($ebo_event->venue, $event);
       $event->organizer_id = $ebo_event->organizer->id;
-      $event->start_date = strtotime($ebo_event->start_date . ' ' . $ebo_event->timezone_offset);
-      $event->end_date = strtotime($ebo_event->end_date . ' ' . $ebo_event->timezone_offset);
       $event->privacy = $ebo_event->privacy;
       $event->modified = strtotime($ebo_event->modified . ' ' . $ebo_event->timezone_offset);
+      $event->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value'] = str_replace(' ', 'T', $ebo_event->start_date);
+      $event->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value2'] = str_replace(' ', 'T', $ebo_event->end_date);
 
       eventbrite_event_save($event);
-    }
+//    }
   }
   else {
     // Create new event entity 
@@ -444,13 +523,14 @@ function eventbrite_event_refresh($ebo_event) {
       'venue_id' => eventbrite_event_get_venue_id($ebo_event->venue),
       'organizer_id' => $ebo_event->organizer->id,
       'status' => $ebo_event->status,
-      'start_date' => strtotime($ebo_event->start_date . ' ' . $ebo_event->timezone_offset),
-      'end_date' => strtotime($ebo_event->end_date . ' ' . $ebo_event->timezone_offset),
       'privacy' => $ebo_event->privacy,
       'created' => strtotime($ebo_event->created . ' ' . $ebo_event->timezone_offset),
       'modified' => strtotime($ebo_event->modified . ' ' . $ebo_event->timezone_offset),
     );
     $event = entity_create('eventbrite_event', $event);
+
+    $event->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value'] = str_replace(' ', 'T', $ebo_event->start_date);
+    $event->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value2'] = str_replace(' ', 'T', $ebo_event->end_date);
     eventbrite_event_save($event);
   }
 }

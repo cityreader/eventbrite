@@ -112,22 +112,22 @@ function template_preprocess_eventbrite_event_venue(&$variables) {
  * Template preprocess function for displaying event date.
  */
 function template_preprocess_eventbrite_event_date(&$variables) {
-  $start_date = format_date($variables['start_date'], 'custom', 'l, F j, Y \a\t g:i A');
+  $day1 =new DateObject($variables['start_date']);
+  $day2 = new DateObject($variables['end_date']);
 
-  $day1 = date('Ymd', $variables['start_date']);
-  $day2 = date('Ymd', $variables['end_date']);
+  $start_date = $day1->format('l, F j, Y \a\t g:i A');
 
-  if ($day1 === $day2) {
-    $end_date = format_date($variables['end_date'], 'custom', 'g:i A');
+  if ($day1->format('Ymd') === $day2->format('Ymd')) {
+    $end_date = $day2->format('g:i A');
   }
   else {
-    $end_date = format_date($variables['end_date'], 'custom', 'l, F j, Y \a\t g:i A');
+    $end_date = $day2->format('l, F j, Y \a\t g:i A');
   }
 
   $variables['start_date'] = $start_date;
   $variables['end_date'] = $end_date;
   $variables['timezone'] = date_default_timezone();
-  
+
   $dateTime = new DateTime();
   $dateTime->setTimeZone(new DateTimeZone($variables['timezone']));
   $variables['timezone_abbr'] = $dateTime->format('T');

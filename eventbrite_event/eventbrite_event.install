@@ -40,18 +40,6 @@ function eventbrite_event_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
-      'start_date' => array(
-        'description' => 'The Unix timestamp when events start.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'end_date' => array(
-        'description' => 'The Unix timestamp when events end.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
       'privacy' => array(
         'description' => '0 for a private event, 1 for a public event. If not provided, will default to 0.',
         'type' => 'int',
@@ -103,7 +91,6 @@ function eventbrite_event_schema() {
     ),
     'primary key' => array('event_id'),
     'indexes' => array(
-      'event_date' => array('start_date', 'end_date'),
       'event_created' => array('created'),
       'event_changed' => array('modified'),
     ),
@@ -228,3 +215,72 @@ function eventbrite_event_schema() {
 
   return $schema;
 }
+
+/**
+ * Implements hook_install().
+ */
+function eventbrite_event_install() {
+  // Clear the field cache so the redhen_email type is found
+  field_cache_clear();
+
+  // // if the field doesn't already exist, create required email field to be used with contacts
+  // $prior_field = field_read_field(EVENTBRITE_EVENT_DATE_FIELD, array('include_inactive' => TRUE));
+  // if (empty($prior_field)) {
+    // $date_field = array(
+      // 'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
+      // 'type' => 'date',
+      // 'locked' => TRUE,
+      // 'cardinality' => 1,
+      // 'settings' => array(
+        // 'granularity' => array(
+          // 'month' => 'month',
+          // 'day' => 'day',
+          // 'hour' => 'hour',
+          // 'minute' => 'minute',
+          // 'year' => 'year',
+          // 'second' => 0,
+         // ),
+         // 'tz_handling' => 'none',
+         // 'todate' => 'required',
+      // ),
+    // );
+    // field_create_field($date_field);
+  // }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eventbrite_event_uninstall() {
+  field_delete_field(EVENTBRITE_EVENT_DATE_FIELD);
+}
+
+/**
+ * Create the event date format.
+ */
+function eventbrite_event_update_7001() {
+  db_insert('date_formats')
+    ->fields(array(
+      'format' => 'l, F j, Y \a\t g:i A',  // PHP Date String
+      'type' => 'custom',          // 'custom'
+      'locked' => 0,               // 0 = user-specified date format
+    ))
+    ->execute();
+}
+
+/**
+ * Create the event date type.
+ */
+function eventbrite_event_update_7002() {
+   db_insert('date_format_type')
+     ->fields(array(
+       'type' => 'eventbrite_event_date',  // Machine Name
+       'title' => 'Event date', // Display Name
+       'locked' => 0,        // 1 = can't change through UI, 0 = can change
+    ))
+  ->execute(); 
+
+  // Variable name is date_format_MACHINENAME from previous insert
+  variable_set('date_format_eventbrite_event_date', 'l, F j, Y \a\t g:i A');
+}
+

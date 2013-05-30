@@ -81,22 +81,6 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'schema field' => 'status',
     );
 
-    $properties['start_date'] = array(
-      'label' => t('Start date'),
-      'description' => t("The start date of the event."),
-      'type' => 'date',
-      'setter callback' => 'entity_property_verbatim_set',
-      'schema field' => 'start_date',
-    );
-
-    $properties['end_date'] = array(
-      'label' => t('End date'),
-      'description' => t("The end date of the event."),
-      'type' => 'date',
-      'setter callback' => 'entity_property_verbatim_set',
-      'schema field' => 'end_date',
-    );
-
     $properties['created'] = array(
       'label' => t('Created'),
       'description' => t("The date the event was created."),

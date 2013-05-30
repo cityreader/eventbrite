@@ -13,8 +13,6 @@ class EventbriteEvent extends Entity {
   public $title;
   public $description;
   public $description_format;
-  public $start_date;
-  public $end_date;
   public $privacy;
   public $personalized_url;
   public $venue_id;
@@ -55,8 +53,8 @@ class EventbriteEvent extends Entity {
 
       $params = array(
         'title' => $this->title,
-        'start_date' => format_date($this->start_date, 'custom', EVENTBRITE_DATE_FORMAT),
-        'end_date' => format_date($this->end_date, 'custom', EVENTBRITE_DATE_FORMAT),
+        'start_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE][0]['value']),
+        'end_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE][0]['value2']),
         'organizer_id' => $this->organizer_id,
         'status' => $this->status,
         'modified' => REQUEST_TIME,
