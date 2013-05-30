@@ -43,6 +43,9 @@ class EventbriteEvent extends Entity {
    * Overrides Entity::save().
    */
   public function save() {
+    eventbrite_event_create_date_field();
+    eventbrite_event_create_date_instance();
+
     // Only save data remotely to Eventbrite in a form submission 
     if (isset($this->form_id)) {
 

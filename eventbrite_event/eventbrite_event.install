@@ -252,7 +252,7 @@ function eventbrite_event_install() {
  * Implements hook_uninstall().
  */
 function eventbrite_event_uninstall() {
-  field_delete_field(EVENTBRITE_EVENT_DATE_FIELD);
+  field_delete_field('eventbrite_event_date');
 }
 
 /**

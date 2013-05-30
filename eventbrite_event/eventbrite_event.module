@@ -4,6 +4,7 @@ define('EVENTBRITE_EVENT_PRIVATE', 0);
 define('EVENTBRITE_EVENT_PUBLIC', 1);
 define('EVENTBRITE_EVENT_DATE_FIELD', 'eventbrite_event_date');
 
+
 module_load_include('inc', 'eventbrite_event', 'includes/eventbrite_event.forms');
 
 /**
@@ -20,7 +21,7 @@ function eventbrite_event_entity_info() {
       'eventbrite_event' => array(
         'label' => t('Eventbrite Event'),
         'admin' => array(
-          'path' => 'admin/content/events',
+          'path' => 'admin/content/event',
           'access arguments' => array('administer eventbrite events'),
         ),
       ),
@@ -44,7 +45,7 @@ function eventbrite_event_entity_info() {
     'module' => 'eventbrite_event',
     'metadata controller class' => 'EventbriteEventMetadataController',
     'admin ui' => array(
-      'path' => 'admin/content/events',
+      'path' => 'admin/content/event',
       'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
       'file' => 'eventbrite_event.forms.inc',
       'controller class' => 'EventbriteEventUIController',
@@ -91,60 +92,9 @@ function eventbrite_event_entity_info() {
  */
 function eventbrite_event_entity_info_alter(&$info) {
   // if the field doesn't already exist, create required email field to be used with contacts
-  if (!field_read_field(EVENTBRITE_EVENT_DATE_FIELD, array('include_inactive' => TRUE))) {
-    $date_field = array(
-      'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
-      'type' => 'date',
-      'locked' => TRUE,
-      'cardinality' => 1,
-      'settings' => array(
-        'granularity' => array(
-          'month' => 'month',
-          'day' => 'day',
-          'hour' => 'hour',
-          'minute' => 'minute',
-          'year' => 'year',
-          'second' => 0,
-         ),
-         'tz_handling' => 'none',
-         'todate' => 'required',
-      ),
-    );
-    field_create_field($date_field);
-  }
-    
-  if (!field_info_instance('eventbrite_event', EVENTBRITE_EVENT_DATE_FIELD, 'eventbrite_event')) {
-    $date_field = array(
-      'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
-      'entity_type' => 'eventbrite_event',
-      'bundle' => 'eventbrite_event',
-      'label' => t('Event Date'),
-      'required' => TRUE,
-      'widget' => array(
-        'type' => 'date_popup',
-        'settings' => array(
-          'input_format' => 'Y-m-d H:i:s',
-          'year_range' => '-0:+1',
-          'increment' => '30',
-        ),
-      ),
-      'settings' => array(
-        'default_value' => 'strtotime',
-        'default_value_code' => '+1 week',
-        'default_value' => 'strtotime',
-        'default_value_code' => '+1 week 1 hour',
-      ),
-      'required' => TRUE,
-      'display' => array(
-        'default' => array(
-          'label' => 'above',
-          'type' => 'eventbrite_date',
-        ),
-      ),
-    );
-    field_create_instance($date_field);
-  }
-//     
+
+
+//
     // if (empty($field)) {
       // $field = array(
         // 'field_name' => 'tickets',
@@ -230,11 +180,11 @@ function eventbrite_event_menu() {
     // 'type' => MENU_LOCAL_TASK,
   // );
 
-  $items['eventbrite/event_refresh'] = array(
-    'title' => 'Event Fefresh',
-    'page callback' => 'eventbrite_event_refresh_page',
+  $items['admin/content/event/pull'] = array(
+    'title' => 'Pull events from Eventbrite',
+    'page callback' => 'eventbrite_event_pull_page',
     'access arguments' => array('administer eventbrite settings'),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_ACTION,
   );
 
   return $items;
@@ -389,51 +339,23 @@ function eventbrite_event_field_extra_fields() {
   return $extra;
 }
 
-function eventbrite_event_refresh_page() {
-  $expire = variable_get('eventbrite_cron', 60);
-
-  $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE queued = 0 OR queued < :time', array(
-    ':time' => REQUEST_TIME - $expire
-  ));
-
-  if (!$result) {
-    return;
-  }
-
-  $queue = DrupalQueue::get('eventbrite_event');
-  foreach ($result as $organizer) {
-    
-    $params = array(
-      'id' => $organizer->organizer_id,
-    );
-    
-    $result = eventbrite_get('organizer_list_events', $params, TRUE);
-    
-    if (!$result) {
-      continue;
-    }
-
-    foreach ($result->events as $event) {
-      // db_update('eventbrite_organizer')
-        // ->fields(array('queued' => REQUEST_TIME))
-        // ->condition('id', $organizer->id)
-        // ->execute();
-      
-      $ebo_event = $event->event;
-      eventbrite_event_refresh($ebo_event);
-      // $queue->createItem($ebo_event);
-    }
-  }
-  return 'hello';
+/**
+ * 
+ */
+function eventbrite_event_pull_page() {
+  eventbrite_event_pull();
+  drupal_set_message('Pull has been finished');
+  drupal_goto('admin/content/event');
 }
 
 /**
- * Implements hook_cron().
- *
  * Queues news feeds for updates once their refresh interval has elapsed.
+ * 
+ * @param $mode
+ *   $batch 
  */
-function eventbrite_event_cron() {
-  $expire = variable_get('eventbrite_cron', 84600);
+function eventbrite_event_pull($batch = FALSE) {
+  $expire = variable_get('eventbrite_cron', 30);
   
   $result = db_query('SELECT * FROM {eventbrite_organizer} WHERE queued = 0 OR queued < :time', array(
     ':time' => REQUEST_TIME - $expire
@@ -443,7 +365,9 @@ function eventbrite_event_cron() {
     return;
   }
 
-  $queue = DrupalQueue::get('eventbrite_event');
+  if ($batch) {
+    $queue = DrupalQueue::get('eventbrite_event');
+  }
 
   foreach ($result as $organizer) {
     db_update('eventbrite_organizer')
@@ -463,11 +387,25 @@ function eventbrite_event_cron() {
 
     foreach ($result->events as $event) {     
       $ebo_event = $event->event;
-      eventbrite_event_refresh($ebo_event);
-
-      $queue->createItem($ebo_event);
+      
+      if ($batch) {
+        $queue->createItem($ebo_event);
+      }
+      else {
+        eventbrite_event_refresh($ebo_event);
+      }
+      
     }
   }
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Queues news feeds for updates once their refresh interval has elapsed.
+ */
+function eventbrite_event_cron() {
+  eventbrite_event_pull(TRUE);
 }
 
 /**
@@ -589,4 +527,62 @@ function eventbrite_event_privacy_options() {
     EVENTBRITE_EVENT_PRIVATE => t('Private event'),
     EVENTBRITE_EVENT_PUBLIC => t('Public event'),
   );
+}
+
+function eventbrite_event_create_date_field() {
+  if (!field_read_field('eventbrite_event_date', array('include_inactive' => TRUE))) {
+    $date_field = array(
+      'field_name' => 'eventbrite_event_date',
+      'type' => 'date',
+      'locked' => TRUE,
+      'cardinality' => 1,
+      'settings' => array(
+        'granularity' => array(
+          'month' => 'month',
+          'day' => 'day',
+          'hour' => 'hour',
+          'minute' => 'minute',
+          'year' => 'year',
+          'second' => 0,
+         ),
+         'tz_handling' => 'none',
+         'todate' => 'required',
+      ),
+    );
+    field_create_field($date_field);
+  }
+}
+
+function eventbrite_event_create_date_instance() {
+  if (!field_info_instance('eventbrite_event', EVENTBRITE_EVENT_DATE_FIELD, 'eventbrite_event')) {
+    $date_field = array(
+      'field_name' => EVENTBRITE_EVENT_DATE_FIELD,
+      'entity_type' => 'eventbrite_event',
+      'bundle' => 'eventbrite_event',
+      'label' => t('Event Date'),
+      'required' => TRUE,
+      'widget' => array(
+        'type' => 'date_popup',
+        'settings' => array(
+          'input_format' => 'Y-m-d H:i:s',
+          'year_range' => '-0:+1',
+          'increment' => '30',
+        ),
+      ),
+      'settings' => array(
+        'default_value' => 'strtotime',
+        'default_value_code' => '+1 week',
+        'default_value' => 'strtotime',
+        'default_value_code' => '+1 week 1 hour',
+      ),
+      'required' => TRUE,
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'type' => 'eventbrite_date',
+        ),
+      ),
+    );
+    field_create_instance($date_field);
+  }
 }

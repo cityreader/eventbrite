@@ -5,7 +5,6 @@ package = Eventbrite
 
 dependencies[] = libraries
 dependencies[] = entity
-dependencies[] = date_popup
 
 files[] = eventbrite.api.inc
 files[] = eventbrite.common.inc
