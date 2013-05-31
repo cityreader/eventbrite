@@ -1,9 +1,11 @@
 <?php
 
-function eventbrite_event_page_view($event) {
-  drupal_set_title($event->title);
+function eventbrite_event_page_view($event, $view_mode = 'full') {
+//  drupal_set_title($event->title);
   
-  return eventbrite_event_show($event);
+  return $event->view($view_mode); 
+  
+//  return eventbrite_event_show($event);
 }
 
 function eventbrite_event_page_title($event) {

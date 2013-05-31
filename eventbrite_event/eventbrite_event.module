@@ -44,6 +44,7 @@ function eventbrite_event_entity_info() {
     'uri callback' => 'entity_class_uri',
     'module' => 'eventbrite_event',
     'metadata controller class' => 'EventbriteEventMetadataController',
+    'views controller class' => 'EventbriteEventViewsController',
     'admin ui' => array(
       'path' => 'admin/content/event',
       'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
@@ -54,7 +55,7 @@ function eventbrite_event_entity_info() {
   );
 
   $entities['eventbrite_ticket'] = array(
-    'label' => t('Event'),
+    'label' => t('Ticket'),
     'entity class' => 'EventbriteTicket',
     'controller class' => 'EntityAPIController',
     'base table' => 'eventbrite_ticket',
@@ -212,6 +213,7 @@ function eventbrite_event_theme() {
       'variables' => array('venue' => NULL),
       'template' => 'eventbrite-event-venue',
       'path' => $path . '/themes',
+      'file' => 'theme.inc',
     ),
     'eventbrite_event_ticket' => array(
       'render element' => 'element',
@@ -253,7 +255,7 @@ function eventbrite_event_field_formatter_view($entity_type, $entity, $field, $i
       '#markup' => theme('eventbrite_event_date', $variables)
     );
   }
-dpm($element);
+
   return $element;
 }
 
@@ -586,3 +588,5 @@ function eventbrite_event_create_date_instance() {
     field_create_instance($date_field);
   }
 }
+
+

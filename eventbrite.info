@@ -19,6 +19,7 @@ files[] = lib/eventbrite_organizer.entity.inc
 files[] = lib/eventbrite_organizer.uicontroller.inc
 files[] = lib/eventbrite_venue.entity.inc
 files[] = lib/eventbrite_venue.uicontroller.inc
+files[] = lib/eventbrite_venue.metadata.inc
 
 
 configure = admin/config/services/eventbrite

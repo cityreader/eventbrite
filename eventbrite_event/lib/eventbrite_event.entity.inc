@@ -169,5 +169,30 @@ dpm($params);
 //      $cache[$this->uid][$this->type] = $this->pid;
 //    }
   }
+
+  /**
+   * Override buildContent() to add organization properties.
+   */
+  public function buildContent($view_mode = 'full', $langcode = NULL) {
+    $build = parent::buildContent($view_mode, $langcode);
+    
+    $buildt['venue'] = array(
+      '#theme' => 'eventbrite_event_venue',
+      '#venue' => eventbrite_venue_load($this->venue_id),
+    );
+  
+    $build['tickets'] = array(
+      '#theme' => 'eventbrite_event_ticket',
+      '#event' => $this,
+    );
+
+    $build['description'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Event Details'),
+      '#value' => filter_xss_admin($this->description),
+    );
+    
+    return $build;
+  }
 }
 

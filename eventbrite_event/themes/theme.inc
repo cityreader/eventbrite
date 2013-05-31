@@ -90,25 +90,6 @@ function theme_eventbrite_event_ticket($variables) {
 }
 
 /**
- * Template preprocess function for displaying event venue.
- */
-function template_preprocess_eventbrite_event_venue(&$variables) {
-  $venue = $variables['venue'];
-
-  $address = array();
-  
-  foreach (array('addess', 'address_2', 'city', 'region') as $field_name) {
-    if (!empty($venue->$field_name)) {
-      $address[] = $venue->$field_name;
-    }
-  }
-  $address = implode(', ', $address);
-
-  $variables['address'] = check_plain($address);
-  $variables['name'] = check_plain($venue->name);
-}
-
-/**
  * Template preprocess function for displaying event date.
  */
 function template_preprocess_eventbrite_event_date(&$variables) {
@@ -133,6 +114,15 @@ function template_preprocess_eventbrite_event_date(&$variables) {
   $variables['timezone_abbr'] = $dateTime->format('T');
 }
 
+/**
+ * Template preprocess function for displaying event venue.
+ */
+function template_preprocess_eventbrite_event_venue(&$variables) {
+  $venue = $variables['venue'];
+
+  $variables['address'] = theme('eventbrite_venue_address', array('venue' => $venue));
+  $variables['name'] = check_plain($venue->name);
+}
 
 
 

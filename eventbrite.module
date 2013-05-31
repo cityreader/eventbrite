@@ -123,6 +123,7 @@ function eventbrite_entity_info() {
     'label callback' => 'entity_class_label',
     'uri callback' => 'entity_class_uri',
     'module' => 'eventbrite',
+    'metadata controller class' => 'EventbriteVenueMetadataController',
     // Enable the entity API's admin UI.
     'admin ui' => array(
       'path' => 'admin/config/services/eventbrite/venues',
@@ -223,12 +224,11 @@ function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
 function eventbrite_theme() {
   $path = drupal_get_path('module', 'eventbrite');
   return array(
-   // 'eventbrite_event' => array(
-     // 'render element' => 'elements',
-     // 'template' => 'eventbrite-event',
-     // 'path' => $path . '/themes',
-     // 'file' => 'theme.inc',
-   // ),
+    'eventbrite_venue_address' => array(
+      'variables' => array('venue' => NULL),
+      'path' => $path . '/themes',
+      'file' => 'theme.inc',
+    ),
 //    'eventbrite_organizer_list_form' => array(
 //      'render element' => 'form',
 //      'file' => 'eventbrite.organizer.inc',
@@ -533,3 +533,13 @@ function eventbrite_organizer_get_enabled() {
   }
   return $enabled;
 }
+
+/**
+ * Callback for getting venue properties.
+ */
+function eventbrite_property_venue_get(EventbriteVenue $venue, array $options, $property_name, $entity_type) {
+  if ($property_name == 'full_address') {
+    return theme('eventbrite_venue_address', array('venue' => $venue));
+  }
+}
+

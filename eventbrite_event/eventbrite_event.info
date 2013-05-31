@@ -9,7 +9,9 @@ dependencies[] = date
 files[] = lib/eventbrite_event.entity.inc
 files[] = lib/eventbrite_event.uicontroller.inc
 files[] = lib/eventbrite_event.metadata.inc
-; files[] = lib/eventbrite_event.views.inc
+files[] = lib/eventbrite_event.views.inc
+files[] = views/views_handler_field_eventbrite_event.inc
+
 files[] = lib/eventbrite_ticket.entity.inc
 files[] = lib/eventbrite_ticket.uicontroller.inc
 

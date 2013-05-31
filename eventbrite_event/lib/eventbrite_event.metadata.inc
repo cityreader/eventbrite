@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Controls metadata for Redhen contacts
+ * Controls metadata for Eventbrite event
  *
  * Redhen utilizes custom property attributes to determine if a property
  * should be available as a filter on the listing page. These attributes are
@@ -17,7 +17,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
     $properties = &$info[$this->type]['properties'];
 
     $properties['event_id'] = array(
-      'label' => t("Event ID"),
+      'label' => t('Event ID'),
       'type' => 'integer',
       'description' => t("The unique ID of the event."),
       'schema field' => 'event_id',
@@ -27,7 +27,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'label' => t('Title'),
       'description' => t('The event title.'),
       'type' => 'text',
-      'setter callback' => 'entity_property_verbatim_set',
+      'getter callback' => 'entity_property_verbatim_get',
       'schema field' => 'title',
       'required' => TRUE,
     );
@@ -57,22 +57,6 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'schema field' => 'personalized_url',
     );
 
-    $properties['venue'] = array(
-      'label' => t('Venue'),
-      'description' => t('The venue of the event'),
-      'type' => 'eventbrite_venue',
-      'setter callback' => 'entity_property_verbatim_set',
-      'schema field' => 'venue_id',
-    );
-
-    $properties['organizer'] = array(
-      'label' => t('Venue'),
-      'description' => t('The organizer of the event'),
-      'type' => 'eventbrite_venue',
-      'setter callback' => 'entity_property_verbatim_set',
-      'schema field' => 'organizer_id',
-    );
-
     $properties['status'] = array(
       'label' => t('Status'),
       'description' => t('The event status.'),
@@ -97,7 +81,23 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
       'schema field' => 'modified',
     );
 
+    // Entities
+    $properties['venue'] = array(
+      'label' => t('Venue'),
+      'description' => t('The venue of the event'),
+      'type' => 'eventbrite_venue',
+      'schema field' => 'venue_id'
+    );
+
+    $properties['organizer'] = array(
+      'label' => t('Organizer'),
+      'description' => t('The organizer of the event'),
+      'type' => 'eventbrite_venue',
+      'schema field' => 'organizer_id',
+    );
+
     return $info;
   }
 
 }
+
