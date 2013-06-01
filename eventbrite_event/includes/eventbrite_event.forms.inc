@@ -34,7 +34,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#type' => 'text_format',
     '#title' => t('Description'),
     '#default_value' => $entity->description,
-    '#format' => $entity->description_format,
+    '#format' => $entity->format,
     '#rows' => 15,
     '#weight' => -19,
   );

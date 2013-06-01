@@ -42,10 +42,9 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
 
     $properties['privacy'] = array(
       'label' => t('Privacy'),
-      'filter' => TRUE,
-      'type' => 'list',
+      'description' => t('Private or public event.'),
+      'type' => 'integer',
       'options list' => 'eventbrite_event_privacy_options',
-      'setter callback' => 'entity_property_verbatim_set',
       'schema field' => 'privacy',
     );
     
@@ -60,8 +59,8 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
     $properties['status'] = array(
       'label' => t('Status'),
       'description' => t('The event status.'),
-      'type' => 'boolean',
-      'setter callback' => 'entity_property_verbatim_set',
+      'type' => 'integer',
+      'options list' => 'eventbrite_event_status_options',
       'schema field' => 'status',
     );
 

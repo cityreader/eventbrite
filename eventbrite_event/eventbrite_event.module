@@ -1,7 +1,10 @@
 <?php
 
-define('EVENTBRITE_EVENT_PRIVATE', 0);
-define('EVENTBRITE_EVENT_PUBLIC', 1);
+define('EVENTBRITE_EVENT_PRIVACY_PRIVATE', 0);
+define('EVENTBRITE_EVENT_PRIVACY_PUBLIC', 1);
+define('EVENTBRITE_EVENT_STATUS_DRAFT', 0);
+define('EVENTBRITE_EVENT_STATUS_LIVE', 1);
+
 define('EVENTBRITE_EVENT_DATE_FIELD', 'eventbrite_event_date');
 
 
@@ -526,17 +529,25 @@ function eventbrite_event_get_venue_id($ebo_venue, $event = NULL) {
 
 function eventbrite_event_privacy_options() {
   return array(
-    EVENTBRITE_EVENT_PRIVATE => t('Private event'),
-    EVENTBRITE_EVENT_PUBLIC => t('Public event'),
+    EVENTBRITE_EVENT_PRIVACY_PRIVATE => t('Private event'),
+    EVENTBRITE_EVENT_PRIVACY_PUBLIC => t('Public event'),
   );
 }
+
+function eventbrite_event_status_options() {
+  return array(
+    EVENTBRITE_EVENT_STATUS_DRAFT => t('Draft'),
+    EVENTBRITE_EVENT_STATUS_LIVE => t('Live'),
+  );
+}
+
 
 function eventbrite_event_create_date_field() {
   if (!field_read_field('eventbrite_event_date', array('include_inactive' => TRUE))) {
     $date_field = array(
       'field_name' => 'eventbrite_event_date',
       'type' => 'date',
-      'locked' => TRUE,
+//      'locked' => TRUE,
       'cardinality' => 1,
       'settings' => array(
         'granularity' => array(

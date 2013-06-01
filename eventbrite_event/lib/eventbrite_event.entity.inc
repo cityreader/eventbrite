@@ -12,7 +12,7 @@ class EventbriteEvent extends Entity {
   public $event_id;
   public $title;
   public $description;
-  public $description_format;
+  public $format;
   public $privacy;
   public $personalized_url;
   public $venue_id;
@@ -50,7 +50,7 @@ class EventbriteEvent extends Entity {
     if (isset($this->form_id)) {
 
       if (is_array($this->description)) {
-        $this->description_format = $this->description['format'];
+        $this->format = $this->description['format'];
         $this->description = $this->description['value'];
       }
 
@@ -176,11 +176,11 @@ dpm($params);
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $build = parent::buildContent($view_mode, $langcode);
     
-    $buildt['venue'] = array(
+    $build['venue'] = array(
       '#theme' => 'eventbrite_event_venue',
       '#venue' => eventbrite_venue_load($this->venue_id),
     );
-  
+
     $build['tickets'] = array(
       '#theme' => 'eventbrite_event_ticket',
       '#event' => $this,
