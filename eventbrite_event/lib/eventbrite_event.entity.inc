@@ -56,8 +56,8 @@ class EventbriteEvent extends Entity {
 
       $params = array(
         'title' => $this->title,
-        'start_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE][0]['value']),
-        'end_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE][0]['value2']),
+        'start_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value']),
+        'end_date' => str_replace('T', ' ', $this->{EVENTBRITE_EVENT_DATE_FIELD}[LANGUAGE_NONE][0]['value2']),
         'organizer_id' => $this->organizer_id,
         'status' => $this->status,
         'modified' => REQUEST_TIME,
@@ -87,8 +87,8 @@ class EventbriteEvent extends Entity {
       
       $params['hide'] = $this->status ? 'y' : 'n';
 
-      if ($this->event_id) {
-        $params['id'] = $this->event_id;
+      if ($this->id) {
+        $params['id'] = $this->id;
       }
 dpm($params);
       $api_callback = !empty($this->is_new) && $this->venue_id ? 'event_new' : 'event_update';
@@ -108,52 +108,52 @@ dpm($params);
         drupal_set_message(t('This event has been updated on the Eventbrite server.'));
       }
 
-      $this->event_id = $result->process->id;
+      $this->id = $result->process->id;
 
-      foreach ($this->tickets[LANGUAGE_NONE] as $delta=>$ticket) {
-        $params = array(
-          'event_id' => $this->event_id,
-          'is_donation' => $ticket['is_donation'],
-          'name' => $ticket['name'],
-          'price' => $ticket['price'],
-          'start_date' => format_date($ticket['start_date'], 'custom', EVENTBRITE_DATE_FORMAT),
-          'end_date' => ormat_date($ticket['end_date'], 'custom', EVENTBRITE_DATE_FORMAT),
-          'include_fee' => $ticket['include_fee'],
-          // 'min' => $ticket['min'],
-          'hide ' => $ticket['hide'],
-        );
-        
-        if ($ticket['description']) {
-          $params['description'] = $ticket['description'];
-        }
-
-        if ($ticket['quantity_available'] > 0) {
-          $params['quantity_available'] = $ticket['quantity_available'];
-        }
-        
-        if ($ticket['max'] > 0) {
-          $params['max'] = $ticket['max'];
-        }
-        
-        if ($ticket['ticket_id'] > 0) {
-          $params['ticket_id'] = $ticket['ticket_id'];
-          
-          $api_callback = 'ticket_update';
-        }
-        else {
-          $api_callback = 'ticket_new';
-        }
-        dpm($params);
-        $result = eventbrite_save($api_callback, $params);
-        
-        if (!$result || $result->process->status !== 'OK') {
-          return;
-        }
-      
-        $this->tickets[LANGUAGE_NONE][$delta]['ticket_id'] = $result->process->id;
-
-        dpm($result);
-      }
+      // foreach ($this->tickets[LANGUAGE_NONE] as $delta=>$ticket) {
+        // $params = array(
+          // 'event_id' => $this->event_id,
+          // 'is_donation' => $ticket['is_donation'],
+          // 'name' => $ticket['name'],
+          // 'price' => $ticket['price'],
+          // 'start_date' => format_date($ticket['start_date'], 'custom', EVENTBRITE_DATE_FORMAT),
+          // 'end_date' => ormat_date($ticket['end_date'], 'custom', EVENTBRITE_DATE_FORMAT),
+          // 'include_fee' => $ticket['include_fee'],
+          // // 'min' => $ticket['min'],
+          // 'hide ' => $ticket['hide'],
+        // );
+//         
+        // if ($ticket['description']) {
+          // $params['description'] = $ticket['description'];
+        // }
+// 
+        // if ($ticket['quantity_available'] > 0) {
+          // $params['quantity_available'] = $ticket['quantity_available'];
+        // }
+//         
+        // if ($ticket['max'] > 0) {
+          // $params['max'] = $ticket['max'];
+        // }
+//         
+        // if ($ticket['ticket_id'] > 0) {
+          // $params['ticket_id'] = $ticket['ticket_id'];
+//           
+          // $api_callback = 'ticket_update';
+        // }
+        // else {
+          // $api_callback = 'ticket_new';
+        // }
+        // dpm($params);
+        // $result = eventbrite_save($api_callback, $params);
+//         
+        // if (!$result || $result->process->status !== 'OK') {
+          // return;
+        // }
+//       
+        // $this->tickets[LANGUAGE_NONE][$delta]['ticket_id'] = $result->process->id;
+// 
+        // dpm($result);
+      // }
 
     }
 

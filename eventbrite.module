@@ -84,6 +84,13 @@ function eventbrite_menu() {
     'weight' => 5,
   );
 
+  $items['admin/config/services/eventbrite/organizers/pull'] = array(
+    'title' => 'Pull organizers from Eventbrite',
+    'page callback' => 'eventbrite_organizer_pull_page',
+    'access arguments' => array('administer eventbrite settings'),
+    'type' => MENU_LOCAL_ACTION,
+  );
+
   return $items;
 }
 
@@ -184,6 +191,10 @@ function eventbrite_permission() {
       'title' => t('View eventbrite events'),
       'description' => t('Allow users to view Eventbrite event content.'),
     ),
+    'edit eventbrite events' => array(
+      'title' => t('Edit eventbrite events'),
+      'description' => t('Allow users to edit Eventbrite event content.'),
+    ),
     'administer eventbrite settings' => array(
       'title' => t('Administer eventbrite settings'),
       'description' => t('Gives full control over the eventbrite admin page.'),
@@ -201,8 +212,16 @@ function eventbrite_permission() {
 function eventbrite_access($op, $entity = NULL, $account = NULL, $entity_type) {
   switch ($entity_type) {
     case 'eventbrite_event':
-      return user_access('administer eventbrite events', $account);
-    
+      switch ($op) {
+        case 'view':
+          return user_access('view eventbrite events', $account);
+        case 'create':
+        case 'update':
+          return user_access('edit eventbrite events', $account);
+        default:
+          return user_access('administer eventbrite events', $account);
+      }
+
     case 'eventbrite_venue':
       return user_access('administer eventbrite settings', $account);
      
@@ -541,5 +560,13 @@ function eventbrite_property_venue_get(EventbriteVenue $venue, array $options, $
   if ($property_name == 'full_address') {
     return theme('eventbrite_venue_address', array('venue' => $venue));
   }
+}
+
+function eventbrite_organizer_pull_page() {
+  // Synchronize organizer data first if cache is expired
+  eventbrite_sync('user_list_organizers');
+
+  drupal_set_message('Pull has been finished');
+  drupal_goto('admin/config/services/eventbrite/organizers');
 }
 

@@ -137,7 +137,7 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
     '#weight' => 11,
   );
 
-  $form['#validate'][] = 'eventbrite_sale_end_date_validate';
+//  $form['#validate'][] = 'eventbrite_sale_end_date_validate';
   
   return $form;
 }
@@ -165,15 +165,12 @@ function eventbrite_event_form_validate($form, &$form_state) {
  * @see eventbrite_event_form_validate()
  */
 function eventbrite_event_form_submit($form, &$form_state) {
-  $eventbrite_event = entity_ui_form_submit_build_entity($form, $form_state);
- 
-  if (TRUE) {
-
-  }
+  $event = entity_ui_form_submit_build_entity($form, $form_state);
+  $event->save();
   
-  $eventbrite_event->save();
-  $form_state['redirect'] = 'admin/config/services/eventbrite/events';
-  return;
+  if ($form_state['redirect']) {
+    $form_state['redirect'] = eventbrite_event_uri() . '/' . $event->event_id;
+  }
 }
 
 
