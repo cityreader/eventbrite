@@ -1,8 +1,0 @@
-<?php
-
-/* file
- * Imports content from eventbrite
-*/
-function eventbrite_content_cron() {
-
-}

@@ -1,7 +1,7 @@
 <?php
 
 function eventbrite_event_page_view($event, $view_mode = 'full') {
-//  drupal_set_title($event->title);
+  drupal_set_title($event->title);
   
   return $event->view($view_mode); 
   

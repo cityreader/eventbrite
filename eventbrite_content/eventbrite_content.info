@@ -1,8 +1,0 @@
-name = Eventbrite
-description = Dynamically Grabs content from eventbrite and populates nodes
-version = "7.x-2.x-dev"
-core = 7.x
-package = Eventbrite
-
-dependencies[] = eventbrite
-dependencies[] = content

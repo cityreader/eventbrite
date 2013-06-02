@@ -92,55 +92,6 @@ function eventbrite_event_entity_info() {
 }
 
 /**
- * Implements hook_entity_info_alter().
- */
-function eventbrite_event_entity_info_alter(&$info) {
-  // if the field doesn't already exist, create required email field to be used with contacts
-
-
-//
-    // if (empty($field)) {
-      // $field = array(
-        // 'field_name' => 'tickets',
-        // 'type' => 'eventbrite_ticket',
-        // 'module' => 'eventbrite',
-        // 'cardinality' => FIELD_CARDINALITY_UNLIMITED,
-        // 'entity_types' => array('eventbrite_event'),
-      // );
-//        
-      // $field = field_create_field($field);
-    // }
-// 
-    // if (empty($instance)) {
-//       
-      // $instance = array(
-        // 'field_name' => 'tickets',
-        // 'entity_type' => 'eventbrite_event',
-        // 'bundle' => 'eventbrite_event',
-        // 'label' => 'Tickets',
-        // 'settings' => array(),
-        // 'description' => 'Event ticket field',
-        // 'required' => TRUE,
-        // 'widget' => array(
-          // 'type' => 'eventbrite_ticket_widget',
-        // ),
-        // 'display' => array(
-          // 'default' => array(
-            // 'type' => 'eventbrite_ticket_formatter',
-            // 'weight' => 10,
-          // ),
-          // 'teaser' => array(
-            // 'type' => 'eventbrite_ticket_formatter',
-            // 'weight' => 10,
-          // ),
-        // ),
-      // ); 
-//   
-      // $instance = field_create_instance($instance);
-    // }
-}
-
-/**
  * Implements hook_menu().
  */
 function eventbrite_event_menu() {
