@@ -59,7 +59,7 @@ class EventbriteEventMetadataController extends EntityDefaultMetadataController 
     $properties['status'] = array(
       'label' => t('Status'),
       'description' => t('The event status.'),
-      'type' => 'integer',
+      'type' => 'text',
       'options list' => 'eventbrite_event_status_options',
       'schema field' => 'status',
     );

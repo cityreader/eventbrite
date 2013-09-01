@@ -47,7 +47,7 @@ class EventbriteEvent extends Entity {
     eventbrite_event_create_date_instance();
 
     // Only save data remotely to Eventbrite in a form submission 
-    if (isset($this->form_id)) {
+    if (FALSE && isset($this->form_id)) {
 
       if (is_array($this->description)) {
         $this->format = $this->description['format'];
@@ -83,7 +83,7 @@ class EventbriteEvent extends Entity {
         $params['personalized_url'] = $this->personalized_url;
       }
 
-      $params['status'] = $this->status ? 'live' : 'draft';
+      $params['status'] = $this->status;
       
       $params['hide'] = $this->status ? 'y' : 'n';
 
@@ -157,8 +157,8 @@ dpm($params);
 
     }
 
-
-    dpm($this);
+// 
+    // dpm($this);
 //
 //    dpm(eventbrite_get('organizer_get', $params));
 
@@ -175,23 +175,35 @@ dpm($params);
    */
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $build = parent::buildContent($view_mode, $langcode);
-    
+
     $build['venue'] = array(
       '#theme' => 'eventbrite_event_venue',
       '#venue' => eventbrite_venue_load($this->venue_id),
     );
 
-    $build['tickets'] = array(
-      '#theme' => 'eventbrite_event_ticket',
-      '#event' => $this,
-    );
+    if ($this->status == 'live') {
+      $build['tickets'] = array(
+        '#theme' => 'eventbrite_event_ticket',
+        '#event' => $this,
+      );
+    }
 
     $build['description'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Event Details'),
-      '#value' => filter_xss_admin($this->description),
+      '#type' => 'markup',
+      // '#title' => t('Event Details'),
+      '#markup' => filter_xss_admin($this->description),
     );
-    
+	
+	global $user;
+	if ($user->uid > 0) {
+      $roles = array_intersect(array('lpa admin', 'editor', 'administrator'), array_values($user->roles));
+	  if (count($roles) > 0) {
+	  	$uri = entity_uri('eventbrite_event', $this);
+        $url = url($uri['path'] . '/' . drupal_hash_base64($this->created), array('absolute' => TRUE));
+	  	drupal_set_message(t('Eventbrite return link: %url', array('%url' => $url)));
+	  }	    
+	}
+
     return $build;
   }
 }

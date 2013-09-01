@@ -309,8 +309,8 @@ function eventbrite_schema() {
 //        'not null' => FALSE,
 //      ),
       'description' => array(
-        'type' => 'varchar',
-        'length' => 255,
+        'type' => 'text',
+        'size' => 'big',
         'not null' => FALSE,
       ),
     ),

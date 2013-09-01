@@ -16,108 +16,66 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
 
   $form = array();
 
-  // $form['venue_id'] = array(
-    // '#type' => 'value',
-    // '#value' => $entity->venue_id,
+  $form_state['eventbrite_event'] = $entity;
+  // // Name is the only required field
+  // $form['title'] = array(
+    // '#type' => 'textfield',
+    // '#title' => t('Event title'),
+    // '#default_value' => $entity->title,
+    // '#required' => 1,
+    // '#weight' => -20,
   // );
 // 
-  // // Name is the only required field
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Event title'),
-    '#default_value' => $entity->title,
-    '#required' => 1,
-    '#weight' => -20,
-  );
+  // $form['description'] = array(
+    // '#type' => 'text_format',
+    // '#title' => t('Description'),
+    // '#default_value' => $entity->description,
+    // '#format' => $entity->format,
+    // '#rows' => 15,
+    // '#weight' => -19,
+  // );
 
-  $form['description'] = array(
-    '#type' => 'text_format',
-    '#title' => t('Description'),
-    '#default_value' => $entity->description,
-    '#format' => $entity->format,
-    '#rows' => 15,
-    '#weight' => -19,
-  );
-
-  module_load_include('inc', 'date_api', 'date_api_elements');
-  // $timezone = date_get_timezone($field['settings']['tz_handling'], isset($items[0]['timezone']) ? $items[0]['timezone'] : date_default_timezone());
-  $timezone = date_default_timezone();
-//
-//  $form['date'] = array(
-//    '#title' => t('Date'),
-//    '#type' => 'fieldset',
-//    '#validator' => array('eventbrite_date_combo_validate'),
-//    '#weight' => -18,
-//    '#element_validate' => array('eventbrite_date_combo_validate'),
-//  );
-//
-//  $form['date']['start_date'] = array(
-//    '#title' => t('Start'),
-//    '#description' => t('The date and time when event start.'),
-//    '#type' => 'date_popup',
-//    '#date_type' => DATE_UNIX,
-//    '#date_timezone' => $timezone,
-//    '#date_format' => 'd/m/Y H:i:s',
-//    '#date_increment' => 1,
-//    '#date_year_range' => '0:+1',
-//    '#default_value' => $entity->start_date ? date('Y-m-d h:i:s', $entity->start_date) : eventbrite_default_date(array('month' => 1)),
-//    '#required' => TRUE,
-//  );
-//
-//  $form['date']['end_date'] = array(
-//    '#title' => t('End'),
-//    '#description' => t('The date and time when event end.'),
-//    '#type' => 'date_popup',
-//    '#date_type' => DATE_UNIX,
-//    '#date_timezone' => $timezone,
-//    '#date_format' => 'd/m/Y H:i:s',
-//    '#date_increment' => 1,
-//    '#date_year_range' => '0:+1',
-//    '#default_value' => $entity->end_date ? date('Y-m-d h:i:s', $entity->end_date) : eventbrite_default_date(array('month' => 1, 'hour' => 2)),
-//    '#required' => TRUE,
-//  );
-
-  $form['privacy'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Privacy'),
-    '#default_value' => $entity->privacy,
-    '#weight' => -17,
-  );
-
-  $form['personalized_url'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Personalized URL'),
-    '#default_value' => $entity->personalized_url,
-    '#weight' => -16,
-  );
-  
-  $venue_options = eventbrite_get_options('venue');
-
-  $form['venue_id'] = array(
-    '#type' => 'select',
-    '#title' => t('Select a venue'),
-    '#options' => $venue_options,
-    '#default_value' => $entity->venue_id,
-    '#weight' => -15,
-  );
-
-  $organizer_options = eventbrite_get_options('organizer');
-  
-  $form['organizer_id'] = array(
-    '#type' => 'select',
-    '#title' => t('Select an organizer'),
-    '#options' => $organizer_options,
-    '#default_value' => $entity->organizer_id,
-    '#weight' => -14,
-  );
-
-  $form['capacity'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Capacity'),
-    '#default_value' => $entity->capacity ? $entity->capacity : '',
-    '#description' => t('The maximum number of people who can attend the event.'),
-    '#weight' => -13,
-  );
+  // $form['privacy'] = array(
+    // '#type' => 'checkbox',
+    // '#title' => t('Privacy'),
+    // '#default_value' => $entity->privacy,
+    // '#weight' => -17,
+  // );
+// 
+  // $form['personalized_url'] = array(
+    // '#type' => 'textfield',
+    // '#title' => t('Personalized URL'),
+    // '#default_value' => $entity->personalized_url,
+    // '#weight' => -16,
+  // );
+//   
+  // $venue_options = eventbrite_get_options('venue');
+// 
+  // $form['venue_id'] = array(
+    // '#type' => 'select',
+    // '#title' => t('Select a venue'),
+    // '#options' => $venue_options,
+    // '#default_value' => $entity->venue_id,
+    // '#weight' => -15,
+  // );
+// 
+  // $organizer_options = eventbrite_get_options('organizer');
+//   
+  // $form['organizer_id'] = array(
+    // '#type' => 'select',
+    // '#title' => t('Select an organizer'),
+    // '#options' => $organizer_options,
+    // '#default_value' => $entity->organizer_id,
+    // '#weight' => -14,
+  // );
+// 
+  // $form['capacity'] = array(
+    // '#type' => 'textfield',
+    // '#title' => t('Capacity'),
+    // '#default_value' => $entity->capacity ? $entity->capacity : '',
+    // '#description' => t('The maximum number of people who can attend the event.'),
+    // '#weight' => -13,
+  // );
   
   
   field_attach_form('eventbrite_event', $entity, $form, $form_state);
@@ -131,11 +89,11 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
 	  '#weight' => 10,
 	);
 
-  $form['actions']['draft'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save as draft'),
-    '#weight' => 11,
-  );
+  // $form['actions']['draft'] = array(
+    // '#type' => 'submit',
+    // '#value' => t('Save as draft'),
+    // '#weight' => 11,
+  // );
 
 //  $form['#validate'][] = 'eventbrite_sale_end_date_validate';
   
@@ -149,12 +107,12 @@ function eventbrite_event_form($form, &$form_state, $entity, $op = 'edit') {
  * @see eventbrite_event_form_submit()
  */
 function eventbrite_event_form_validate($form, &$form_state) {
-  if ($form_state['triggering_element']['#value'] == $form['actions']['draft']['#value']) {
-    $form_state['values']['status'] = 0;
-  }
-  elseif ($form_state['triggering_element']['#value'] == $form['actions']['submit']['#value']) {
-    $form_state['values']['status'] = 1;
-  }
+  // if ($form_state['triggering_element']['#value'] == $form['actions']['draft']['#value']) {
+    // $form_state['values']['status'] = 0;
+  // }
+  // elseif ($form_state['triggering_element']['#value'] == $form['actions']['submit']['#value']) {
+    // $form_state['values']['status'] = 1;
+  // }
 
 }
 
@@ -165,10 +123,12 @@ function eventbrite_event_form_validate($form, &$form_state) {
  * @see eventbrite_event_form_validate()
  */
 function eventbrite_event_form_submit($form, &$form_state) {
-  $event = entity_ui_form_submit_build_entity($form, $form_state);
+  // $event = entity_ui_form_submit_build_entity($form, $form_state);
+  $event = $form_state['eventbrite_event'];
+  entity_form_submit_build_entity('eventbrite_event', $event, $form, $form_state);
   $event->save();
-  
-  if ($form_state['redirect']) {
+
+  if (empty($form_state['redirect'])) {
     $form_state['redirect'] = eventbrite_event_uri() . '/' . $event->event_id;
   }
 }

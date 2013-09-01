@@ -11,6 +11,9 @@ files[] = lib/eventbrite_event.uicontroller.inc
 files[] = lib/eventbrite_event.metadata.inc
 files[] = lib/eventbrite_event.views.inc
 files[] = views/views_handler_field_eventbrite_event.inc
+files[] = views/views_handler_field_eventbrite_event_link.inc
+files[] = views/views_handler_field_eventbrite_event_link_edit.inc
+files[] = views/views_handler_field_eventbrite_event_link_delete.inc
 
 files[] = lib/eventbrite_ticket.entity.inc
 files[] = lib/eventbrite_ticket.uicontroller.inc

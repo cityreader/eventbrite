@@ -2,9 +2,12 @@
 
 define('EVENTBRITE_EVENT_PRIVACY_PRIVATE', 0);
 define('EVENTBRITE_EVENT_PRIVACY_PUBLIC', 1);
-define('EVENTBRITE_EVENT_STATUS_DRAFT', 0);
-define('EVENTBRITE_EVENT_STATUS_LIVE', 1);
 
+// EVENTBRITE_EVENT_STATUS_DRAFT => 'Draft',
+// EVENTBRITE_EVENT_STATUS_LIVE => 'Live',
+// EVENTBRITE_EVENT_STATUS_COMPLETED => 'Completed',
+// EVENTBRITE_EVENT_STATUS_UNSAVED => 'Unsaved',
+    
 define('EVENTBRITE_EVENT_DATE_FIELD', 'eventbrite_event_date');
 
 
@@ -48,45 +51,45 @@ function eventbrite_event_entity_info() {
     'module' => 'eventbrite_event',
     'metadata controller class' => 'EventbriteEventMetadataController',
     'views controller class' => 'EventbriteEventViewsController',
-    'admin ui' => array(
-      'path' => 'admin/content/event',
-      'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
-      'file' => 'eventbrite_event.forms.inc',
-      'controller class' => 'EventbriteEventUIController',
-    ),
+    // 'admin ui' => array(
+      // 'path' => 'event',
+      // 'file path' => drupal_get_path('module', 'eventbrite') . '/includes',
+      // 'file' => 'eventbrite_event.forms.inc',
+      // 'controller class' => 'EventbriteEventUIController',
+    // ),
     'access callback' => 'eventbrite_access',
   );
 
-  $entities['eventbrite_ticket'] = array(
-    'label' => t('Ticket'),
-    'entity class' => 'EventbriteTicket',
-    'controller class' => 'EntityAPIController',
-    'base table' => 'eventbrite_ticket',
-    'fieldable' => FALSE,
-    'bundles' => array(
-      'eventbrite_ticket' => array(
-        'label' => t('Eventbrite Ticket'),
-        // 'admin' => array(
-          // 'path' => 'admin/content/events',
-          // 'access arguments' => array('administer eventbrite events'),
-        // ),
-      ),
-    ),
-    'entity keys' => array(
-      'id' => 'ticket_id',
-      'label' => 'title',
-    ),
-    'view modes' => array(
-      'full' => array(
-        'label' => t('Full content'),
-        'custom settings' => FALSE,
-      ),
-    ),
-    'label callback' => 'entity_class_label',
-    'uri callback' => 'entity_class_uri',
-    'module' => 'eventbrite_event',
-    'access callback' => 'eventbrite_access',
-  );
+  // $entities['eventbrite_ticket'] = array(
+    // 'label' => t('Ticket'),
+    // 'entity class' => 'EventbriteTicket',
+    // 'controller class' => 'EntityAPIController',
+    // 'base table' => 'eventbrite_ticket',
+    // 'fieldable' => FALSE,
+    // 'bundles' => array(
+      // 'eventbrite_ticket' => array(
+        // 'label' => t('Eventbrite Ticket'),
+        // // 'admin' => array(
+          // // 'path' => 'admin/content/events',
+          // // 'access arguments' => array('administer eventbrite events'),
+        // // ),
+      // ),
+    // ),
+    // 'entity keys' => array(
+      // 'id' => 'ticket_id',
+      // 'label' => 'title',
+    // ),
+    // 'view modes' => array(
+      // 'full' => array(
+        // 'label' => t('Full content'),
+        // 'custom settings' => FALSE,
+      // ),
+    // ),
+    // 'label callback' => 'entity_class_label',
+    // 'uri callback' => 'entity_class_uri',
+    // 'module' => 'eventbrite_event',
+    // 'access callback' => 'eventbrite_access',
+  // );
 
   return $entities;
 }
@@ -124,16 +127,16 @@ function eventbrite_event_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  
-  // $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
-    // 'title' => 'Edit',
-    // 'page callback' => 'eventbrite_contextual_page_tab',
-    // 'page arguments' => array($id_count, 'eventbrite_event'),
-    // 'access arguments' => array('administer eventbrite events'),
-    // 'file path' => drupal_get_path('module', 'eventbrite_event') . '/includes',
-    // 'file' => 'eventbrite_event.pages.inc',
-    // 'type' => MENU_LOCAL_TASK,
-  // );
+
+  $items[$eventbrite_event_uri . '/%eventbrite_event/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'eventbrite_event_page_edit',
+    'page arguments' => array($id_count),
+    'access arguments' => array('edit eventbrite events'),
+    'file path' => drupal_get_path('module', 'eventbrite_event') . '/includes',
+    'file' => 'eventbrite_event.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
 
   $items['admin/content/event/pull'] = array(
     'title' => 'Pull events from Eventbrite',
@@ -143,6 +146,26 @@ function eventbrite_event_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_permissions().
+ */
+function eventbrite_event_permission() {
+  return array(
+    'view eventbrite events' => array(
+      'title' => t('View eventbrite events'),
+      'description' => t('Allow users to view Eventbrite event content.'),
+    ),
+    'edit eventbrite events' => array(
+      'title' => t('Edit eventbrite events'),
+      'description' => t('Allow users to edit Eventbrite event content.'),
+    ),
+    'administer eventbrite events' => array(
+      'title' => t('Administer eventbrite events'),
+      'description' => t('Allows users to configure eventbrite events.'),
+    ),
+  );
 }
 
 /**
@@ -279,6 +302,11 @@ function eventbrite_event_field_extra_fields() {
       // ),
     ),
     'display' => array(
+      'venue' => array(
+        'label' => t('Venue'),
+        'description' => t('Event entity element'),
+        'weight' => 0,
+      ),
       'tickets' => array(
         'label' => t('Ticket Information'),
         'description' => t('Event entity element'),
@@ -341,7 +369,7 @@ function eventbrite_event_pull($batch = FALSE) {
       continue;
     }
 
-    foreach ($result->events as $event) {     
+    foreach ($result->events as $event) {
       $ebo_event = $event->event;
       
       if ($batch) {
@@ -382,12 +410,19 @@ function eventbrite_event_cron_queue_info() {
  *   An object describing the feed to be refreshed.
  */
 function eventbrite_event_refresh($ebo_event) {
+  // We do not save unsaved event
+  
+  $status = strtolower($ebo_event->status);
+  if ($status == 'unsaved') {
+    return;
+  }
+
   $event_id = db_select('eventbrite_event', 'e')
     ->fields('e', array('event_id'))
     ->condition('id', $ebo_event->id)
     ->execute()
     ->fetchField();
-
+dpm($ebo_event);
   if ($event_id) {
     // Check existing event and update
     $event = eventbrite_event_load($event_id);
@@ -397,8 +432,8 @@ function eventbrite_event_refresh($ebo_event) {
 //    if ($event->modified != $modified) {
       $event->title = $ebo_event->title;
       $event->description = $ebo_event->description;
-      $event->status = $ebo_event->status;
-      $event->venue_id = eventbrite_event_get_venue_id($ebo_event->venue, $event);
+      $event->status = $status;
+      $event->venue_id = isset($ebo_event->venue) ? eventbrite_event_get_venue_id($ebo_event->venue, $event) : '';
       $event->organizer_id = $ebo_event->organizer->id;
       $event->privacy = $ebo_event->privacy;
       $event->modified = strtotime($ebo_event->modified . ' ' . $ebo_event->timezone_offset);
@@ -409,12 +444,13 @@ function eventbrite_event_refresh($ebo_event) {
 //    }
   }
   else {
+    dpm($ebo_event);
     // Create new event entity 
     $event = array(
       'id' => $ebo_event->id,
       'title' => $ebo_event->title,
       'description' => $ebo_event->description,
-      'venue_id' => eventbrite_event_get_venue_id($ebo_event->venue),
+      'venue_id' => isset($ebo_event->venue) ? eventbrite_event_get_venue_id($ebo_event->venue) : '',
       'organizer_id' => $ebo_event->organizer->id,
       'status' => $ebo_event->status,
       'privacy' => $ebo_event->privacy,
@@ -444,7 +480,11 @@ function eventbrite_event_refresh($ebo_event) {
  * @return
  *   The venue entity ID which is as same of eventbrite venue ID.
  */
-function eventbrite_event_get_venue_id($ebo_venue, $event = NULL) {
+function eventbrite_event_get_venue_id($ebo_venue = NULL, $event = NULL) {
+  if (empty($ebo_venue)) {
+    return '';
+  }
+  
   if ($event && $event->venue_id == $ebo_venue->id) {
     return $event->venue_id;
   }
@@ -487,8 +527,13 @@ function eventbrite_event_privacy_options() {
 
 function eventbrite_event_status_options() {
   return array(
-    EVENTBRITE_EVENT_STATUS_DRAFT => t('Draft'),
-    EVENTBRITE_EVENT_STATUS_LIVE => t('Live'),
+    'draft' => t('Draft'),
+    'live' => t('Live'),
+    'canceled' => t('Canceled'),
+    'deleted' => t('Deleted'),
+    'canceled' => t('Canceled'),
+    'completed' => t('Completed'),
+    'unsaved' => t('Unsaved'),
   );
 }
 

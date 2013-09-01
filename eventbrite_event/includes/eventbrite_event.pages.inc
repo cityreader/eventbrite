@@ -4,8 +4,12 @@ function eventbrite_event_page_view($event, $view_mode = 'full') {
   drupal_set_title($event->title);
   
   return $event->view($view_mode); 
-  
 //  return eventbrite_event_show($event);
+}
+
+function eventbrite_event_page_edit($event) {
+  drupal_set_title(t('<em>Edit </em> @title', array('@title' => $event->title)), PASS_THROUGH);
+  return drupal_get_form('eventbrite_event_form', $event);
 }
 
 function eventbrite_event_page_title($event) {

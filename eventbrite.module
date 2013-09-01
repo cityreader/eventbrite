@@ -187,21 +187,9 @@ function eventbrite_entity_info() {
  */
 function eventbrite_permission() {
   return array(
-    'view eventbrite events' => array(
-      'title' => t('View eventbrite events'),
-      'description' => t('Allow users to view Eventbrite event content.'),
-    ),
-    'edit eventbrite events' => array(
-      'title' => t('Edit eventbrite events'),
-      'description' => t('Allow users to edit Eventbrite event content.'),
-    ),
     'administer eventbrite settings' => array(
       'title' => t('Administer eventbrite settings'),
       'description' => t('Gives full control over the eventbrite admin page.'),
-    ),
-    'administer eventbrite events' => array(
-      'title' => t('Administer eventbrite events'),
-      'description' => t('Allows users to configure eventbrite events.'),
     ),
   );
 }

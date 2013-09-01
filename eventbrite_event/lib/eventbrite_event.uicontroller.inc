@@ -78,28 +78,28 @@ class EventbriteEventUIController extends EntityDefaultUIController {
       'file' => 'eventbrite_event.forms.inc',
     );
     // Menu item for operations like revert and delete.
-    $items[$eventbrite_event_uri . '/%eventbrite_event/%'] = array(
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array($this->entityType . '_operation_form', $this->entityType, $id_count, $id_count + 1),
-      'load arguments' => array($this->entityType),
-      'access callback' => 'entity_access',
-      'access arguments' => array('delete', $this->entityType, $id_count),
-      'file' => 'includes/entity.ui.inc',
-    );
+    // $items[$eventbrite_event_uri . '/%eventbrite_event/%'] = array(
+      // 'page callback' => 'drupal_get_form',
+      // 'page arguments' => array($this->entityType . '_operation_form', $this->entityType, $id_count, $id_count + 1),
+      // 'load arguments' => array($this->entityType),
+      // 'access callback' => 'entity_access',
+      // 'access arguments' => array('delete', $this->entityType, $id_count),
+      // 'file' => 'includes/entity.ui.inc',
+    // );
 
-    if (!empty($this->entityInfo['exportable'])) {
-      // Menu item for importing an entity.
-      $items[$this->path . '/import'] = array(
-        'title callback' => 'entity_ui_get_action_title',
-        'title arguments' => array('import', $this->entityType),
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array($this->entityType . '_operation_form', $this->entityType, NULL, 'import'),
-        'access callback' => 'entity_access',
-        'access arguments' => array('create', $this->entityType),
-        'file' => 'includes/entity.ui.inc',
-        'type' => MENU_LOCAL_ACTION,
-      );
-    }
+    // if (!empty($this->entityInfo['exportable'])) {
+      // // Menu item for importing an entity.
+      // $items[$this->path . '/import'] = array(
+        // 'title callback' => 'entity_ui_get_action_title',
+        // 'title arguments' => array('import', $this->entityType),
+        // 'page callback' => 'drupal_get_form',
+        // 'page arguments' => array($this->entityType . '_operation_form', $this->entityType, NULL, 'import'),
+        // 'access callback' => 'entity_access',
+        // 'access arguments' => array('create', $this->entityType),
+        // 'file' => 'includes/entity.ui.inc',
+        // 'type' => MENU_LOCAL_ACTION,
+      // );
+    // }
 dpm($items);
     return $items;
   }
